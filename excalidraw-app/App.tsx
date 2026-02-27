@@ -508,6 +508,21 @@ const ExcalidrawWrapper = () => {
     initializeScene({ collabAPI, excalidrawAPI }).then(async (data) => {
       loadImages(data, /* isInitialLoad */ true);
       initialStatePromiseRef.current.promise.resolve(data.scene);
+      
+      // Load default table template
+      try {
+        const response = await fetch("/table-template.excalidrawlib");
+        if (response.ok) {
+          const blob = await response.blob();
+          await excalidrawAPI.updateLibrary({
+            libraryItems: blob,
+            merge: true,
+            defaultStatus: "published",
+          });
+        }
+      } catch (error) {
+        console.warn("Failed to load default table template:", error);
+      }
     });
 
     const onHashChange = async (event: HashChangeEvent) => {
