@@ -60,6 +60,10 @@ import {
   parseLibraryTokensFromUrl,
   useHandleLibrary,
 } from "@excalidraw/excalidraw/data/library";
+import {
+  createTableTemplate,
+  TABLE_TEMPLATE_ID,
+} from "@excalidraw/excalidraw/data/tableTemplate";
 
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import type { RestoredDataState } from "@excalidraw/excalidraw/data/restore";
@@ -415,6 +419,21 @@ const ExcalidrawWrapper = () => {
     // TODO maybe remove this in several months (shipped: 24-03-11)
     migrationAdapter: LibraryLocalStorageMigrationAdapter,
   });
+
+  useEffect(() => {
+    if (!excalidrawAPI) {
+      return;
+    }
+
+    excalidrawAPI.updateLibrary({
+      libraryItems: (currentItems) => {
+        if (currentItems.some((item) => item.id === TABLE_TEMPLATE_ID)) {
+          return currentItems;
+        }
+        return [createTableTemplate(), ...currentItems];
+      },
+    });
+  }, [excalidrawAPI]);
 
   const [, forceRefresh] = useState(false);
 

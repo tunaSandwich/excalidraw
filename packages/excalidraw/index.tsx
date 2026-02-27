@@ -278,6 +278,7 @@ export {
 export { CaptureUpdateAction } from "@excalidraw/element";
 
 export { parseLibraryTokensFromUrl, useHandleLibrary } from "./data/library";
+export { createTableTemplate, TABLE_TEMPLATE_ID } from "./data/tableTemplate";
 
 export { Sidebar } from "./components/Sidebar/Sidebar";
 export { Button } from "./components/Button";
