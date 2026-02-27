@@ -284,7 +284,9 @@ export const actionFinalize = register<FormData>({
           convertedFromFreeDraw = true;
           element = convertedElement;
           newElements = newElements.map((el) =>
-            el.id === convertedElement.id ? convertedElement : el,
+            el.id === convertedElement.id
+              ? (convertedElement as typeof el)
+              : el,
           );
         }
       }

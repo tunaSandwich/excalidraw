@@ -1,4 +1,5 @@
 import { ROUNDNESS } from "@excalidraw/common";
+import type { Bounds } from "@excalidraw/common";
 import {
   degreesToRadians,
   pointDistance,
@@ -11,7 +12,7 @@ import {
 import { getCenterForBounds, getCommonBoundingBox } from "./bounds";
 import { newArrowElement, newElement, newLinearElement } from "./newElement";
 
-import type { BoundingBox, Bounds } from "./bounds";
+import type { BoundingBox } from "./bounds";
 import type {
   ExcalidrawArrowElement,
   ExcalidrawDiamondElement,
