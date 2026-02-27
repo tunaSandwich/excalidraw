@@ -31,6 +31,8 @@ import { getNonDeletedElements } from "@excalidraw/element";
 
 import type { LibraryPersistedData } from "@excalidraw/excalidraw/data/library";
 import type { ImportedDataState } from "@excalidraw/excalidraw/data/types";
+
+import { DEFAULT_LIBRARY_ITEMS } from "./tableTemplate";
 import type { ExcalidrawElement, FileId } from "@excalidraw/element/types";
 import type {
   AppState,
@@ -241,7 +243,12 @@ export class LibraryIndexedDBAdapter {
       LibraryIndexedDBAdapter.store,
     );
 
-    return IDBData || null;
+    // When library is empty, provide default templates (e.g. table)
+    if (!IDBData || !IDBData.libraryItems?.length) {
+      return { libraryItems: DEFAULT_LIBRARY_ITEMS };
+    }
+
+    return IDBData;
   }
 
   static save(data: LibraryPersistedData): MaybePromise<void> {

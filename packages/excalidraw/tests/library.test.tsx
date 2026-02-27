@@ -237,6 +237,50 @@ describe("library", () => {
     // this has a high flake
     // expect(h.state.activeTool.type).toBe("selection");
   });
+
+  it("should insert table template (grid of rectangles)", async () => {
+    const CELL_WIDTH = 100;
+    const CELL_HEIGHT = 40;
+    const ROWS = 3;
+    const COLS = 3;
+    const cells = [];
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        cells.push(
+          API.createElement({
+            type: "rectangle",
+            x: col * CELL_WIDTH,
+            y: row * CELL_HEIGHT,
+            width: CELL_WIDTH,
+            height: CELL_HEIGHT,
+          }),
+        );
+      }
+    }
+    const tableItem: LibraryItem = {
+      id: "table-template",
+      status: "unpublished",
+      name: "Table",
+      created: Date.now(),
+      elements: cells,
+    };
+
+    await render(<Excalidraw initialData={{ libraryItems: [tableItem] }} />);
+    await act(() => h.app.library.getLatestLibrary());
+
+    await act(() => {
+      h.app.onInsertElements(
+        distributeLibraryItemsOnSquareGrid([tableItem]),
+      );
+      h.app.focusContainer();
+    });
+
+    await waitFor(() => {
+      expect(h.elements).toHaveLength(ROWS * COLS);
+      const rectangles = h.elements.filter((e) => e.type === "rectangle");
+      expect(rectangles).toHaveLength(ROWS * COLS);
+    });
+  });
 });
 
 describe("library menu", () => {
