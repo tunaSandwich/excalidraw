@@ -5,6 +5,7 @@ import {
   isValidPolygon,
   LinearElementEditor,
   newElementWith,
+  convertToShape,
 } from "@excalidraw/element";
 
 import {
@@ -58,7 +59,7 @@ export const actionFinalize = register<FormData>({
     const { interactiveCanvas, focusContainer, scene } = app;
     const elementsMap = scene.getNonDeletedElementsMap();
 
-    if (data && appState.selectedLinearElement) {
+    if (data?.event && data?.sceneCoords && appState.selectedLinearElement) {
       const { event, sceneCoords } = data;
       const element = LinearElementEditor.getElement(
         appState.selectedLinearElement.elementId,
@@ -191,6 +192,7 @@ export const actionFinalize = register<FormData>({
       focusContainer();
     }
 
+    let convertedFromFreeDraw = false;
     let element: NonDeleted<ExcalidrawElement> | null = null;
     if (appState.multiElement) {
       element = appState.multiElement;
@@ -270,6 +272,22 @@ export const actionFinalize = register<FormData>({
           });
         }
       }
+
+      if (
+        appState.isConvertToShapeEnabled &&
+        appState.newElement?.id === element.id &&
+        isFreeDrawElement(element)
+      ) {
+        const convertedElement = convertToShape(element);
+
+        if (convertedElement !== element) {
+          convertedFromFreeDraw = true;
+          element = convertedElement;
+          newElements = newElements.map((el) =>
+            el.id === convertedElement.id ? convertedElement : el,
+          );
+        }
+      }
     }
 
     if (
@@ -295,7 +313,7 @@ export const actionFinalize = register<FormData>({
     }
 
     let selectedLinearElement =
-      element && isLinearElement(element)
+      element && isLinearElement(element) && !convertedFromFreeDraw
         ? new LinearElementEditor(element, arrayToMap(newElements)) // To select the linear element when user has finished mutipoint editing
         : appState.selectedLinearElement;
 

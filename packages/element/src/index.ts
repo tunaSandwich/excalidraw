@@ -60,6 +60,7 @@ export * from "./bounds";
 export * from "./collision";
 export * from "./comparisons";
 export * from "./containerCache";
+export * from "./convertToShape";
 export * from "./cropElement";
 export * from "./delta";
 export * from "./distance";

@@ -652,6 +652,49 @@ export const actionChangeSloppiness = register<ExcalidrawElement["roughness"]>({
   ),
 });
 
+export const actionToggleConvertToShape = register<boolean>({
+  name: "toggleConvertToShape",
+  label: "labels.convertToShape",
+  trackEvent: false,
+  perform: (elements, appState, value) => {
+    const isConvertToShapeEnabled =
+      value ?? !Boolean(appState.isConvertToShapeEnabled);
+
+    return {
+      elements,
+      appState: {
+        ...appState,
+        isConvertToShapeEnabled,
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ appState, updateData }) => (
+    <fieldset>
+      <legend>{t("labels.convertToShape")}</legend>
+      <div className="buttonList">
+        <RadioSelection
+          type="button"
+          options={[
+            {
+              value: false,
+              text: t("labels.convertToShapeDisable"),
+              icon: EdgeSharpIcon,
+            },
+            {
+              value: true,
+              text: t("labels.convertToShapeEnable"),
+              icon: EdgeRoundIcon,
+            },
+          ]}
+          value={Boolean(appState.isConvertToShapeEnabled)}
+          onClick={(selectedValue) => updateData(selectedValue)}
+        />
+      </div>
+    </fieldset>
+  ),
+});
+
 export const actionChangeStrokeStyle = register<
   ExcalidrawElement["strokeStyle"]
 >({
