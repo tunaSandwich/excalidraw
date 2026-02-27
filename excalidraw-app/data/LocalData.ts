@@ -40,6 +40,7 @@ import type {
 import type { MaybePromise } from "@excalidraw/common/utility-types";
 
 import { SAVE_TO_LOCAL_STORAGE_TIMEOUT, STORAGE_KEYS } from "../app_constants";
+import { DEFAULT_LIBRARY_ITEMS } from "./defaultLibraryItems";
 
 import { FileManager } from "./FileManager";
 import { Locker } from "./Locker";
@@ -241,7 +242,7 @@ export class LibraryIndexedDBAdapter {
       LibraryIndexedDBAdapter.store,
     );
 
-    return IDBData || null;
+    return IDBData || DEFAULT_LIBRARY_ITEMS;
   }
 
   static save(data: LibraryPersistedData): MaybePromise<void> {
