@@ -7521,6 +7521,8 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState.lastCoords.x,
         pointerDownState.lastCoords.y,
       );
+    } else if (this.state.activeTool.type === "stickynote") {
+      this.createStickyNoteOnPointerDown(pointerDownState);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
@@ -8987,6 +8989,45 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  private createStickyNoteOnPointerDown = (
+    pointerDownState: PointerDownState,
+  ): void => {
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const element = newElement({
+      type: "rectangle",
+      x: gridX,
+      y: gridY,
+      strokeColor: "transparent",
+      backgroundColor: "#FFF3BF",
+      fillStyle: "solid",
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(element);
+    this.setState({
+      multiElement: null,
+      newElement: element,
+    });
+  };
+
   private createFrameElementOnPointerDown = (
     pointerDownState: PointerDownState,
     type: Extract<ToolType, "frame" | "magicframe">,
@@ -10385,6 +10426,47 @@ class App extends React.Component<AppProps, AppState> {
         this.handleTextWysiwyg(newElement, {
           isExistingElement: true,
         });
+      }
+
+      if (activeTool.type === "stickynote" && newElement) {
+        const STICKY_NOTE_DEFAULT_SIZE = 200;
+        if (isInvisiblySmallElement(newElement)) {
+          this.scene.mutateElement(newElement, {
+            width: STICKY_NOTE_DEFAULT_SIZE,
+            height: STICKY_NOTE_DEFAULT_SIZE,
+          });
+        }
+
+        this.scene.mutateElement(
+          newElement,
+          getNormalizedDimensions(newElement),
+          { informMutation: false, isDragging: false },
+        );
+
+        this.setState((prevState) => ({
+          newElement: null,
+          activeTool: activeTool.locked
+            ? activeTool
+            : updateActiveTool(this.state, {
+                type: this.state.preferredSelectionTool.type,
+              }),
+          selectedElementIds: makeNextSelectedElementIds(
+            {
+              ...prevState.selectedElementIds,
+              [newElement.id]: true,
+            },
+            prevState,
+          ),
+        }));
+
+        this.startTextEditing({
+          sceneX: newElement.x + newElement.width / 2,
+          sceneY: newElement.y + newElement.height / 2,
+          container: newElement as ExcalidrawTextContainer,
+          autoEdit: true,
+        });
+
+        return;
       }
 
       if (
