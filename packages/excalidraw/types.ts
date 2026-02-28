@@ -275,6 +275,11 @@ export interface AppState {
     top: number;
     left: number;
   } | null;
+  emojiReactionPicker: {
+    elementId: string;
+    top: number;
+    left: number;
+  } | null;
   showWelcomeScreen: boolean;
   isLoading: boolean;
   errorMessage: React.ReactNode;

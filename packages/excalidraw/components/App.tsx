@@ -437,6 +437,7 @@ import ConvertElementTypePopup, {
 import { activeConfirmDialogAtom } from "./ActiveConfirmDialog";
 import BraveMeasureTextError from "./BraveMeasureTextError";
 import { ContextMenu, CONTEXT_MENU_SEPARATOR } from "./ContextMenu";
+import { EmojiReactionPicker } from "./EmojiReactionPicker";
 import { activeEyeDropperAtom } from "./EyeDropper";
 import FollowMode from "./FollowMode/FollowMode";
 import LayerUI from "./LayerUI";
@@ -2205,13 +2206,63 @@ class App extends React.Component<AppProps, AppState> {
                             left={this.state.contextMenu.left}
                             actionManager={this.actionManager}
                             onClose={(callback) => {
-                              this.setState({ contextMenu: null }, () => {
-                                this.focusContainer();
-                                callback?.();
-                              });
+                              this.setState(
+                                {
+                                  contextMenu: null,
+                                  emojiReactionPicker: null,
+                                },
+                                () => {
+                                  this.focusContainer();
+                                  callback?.();
+                                },
+                              );
                             }}
                           />
                         )}
+                        {this.state.emojiReactionPicker &&
+                          (() => {
+                            const el = this.scene.getElement(
+                              this.state.emojiReactionPicker.elementId,
+                            );
+                            if (!el) {
+                              return null;
+                            }
+                            return (
+                              <EmojiReactionPicker
+                                top={this.state.emojiReactionPicker.top - 44}
+                                left={this.state.emojiReactionPicker.left}
+                                reactions={
+                                  (el.customData?.reactions as string[]) || []
+                                }
+                                appState={this.state}
+                                onSelect={(emoji) => {
+                                  const reactions: string[] = [
+                                    ...((el.customData
+                                      ?.reactions as string[]) || []),
+                                  ];
+                                  const idx = reactions.indexOf(emoji);
+                                  if (idx >= 0) {
+                                    reactions.splice(idx, 1);
+                                  } else {
+                                    reactions.push(emoji);
+                                  }
+                                  this.scene.mutateElement(el, {
+                                    customData: {
+                                      ...el.customData,
+                                      reactions,
+                                    },
+                                  });
+                                }}
+                                onClose={() => {
+                                  this.setState({
+                                    emojiReactionPicker: null,
+                                    contextMenu: null,
+                                  });
+                                  this.focusContainer();
+                                }}
+                              />
+                            );
+                          })()}
                         <StaticCanvas
                           canvas={this.canvas}
                           rc={this.rc}
@@ -2714,6 +2765,7 @@ class App extends React.Component<AppProps, AppState> {
           // or programmatically from the host, so it will need to be
           // rewritten later
           contextMenu: null,
+          emojiReactionPicker: null,
           editingTextElement,
           viewModeEnabled,
           zenModeEnabled,
@@ -7179,8 +7231,8 @@ class App extends React.Component<AppProps, AppState> {
     // and an contextMenu action may depend on selection state, we must
     // close the contextMenu before we update the selection on pointerDown
     // (e.g. resetting selection)
-    if (this.state.contextMenu) {
-      this.setState({ contextMenu: null });
+    if (this.state.contextMenu || this.state.emojiReactionPicker) {
+      this.setState({ contextMenu: null, emojiReactionPicker: null });
     }
 
     if (this.state.snapLines) {
@@ -9020,6 +9072,7 @@ class App extends React.Component<AppProps, AppState> {
       roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
+      customData: { isStickyNote: true, reactions: [] },
     }) as NonDeleted<ExcalidrawNonSelectionElement>;
 
     this.scene.insertElement(element);
@@ -11778,6 +11831,11 @@ class App extends React.Component<AppProps, AppState> {
 
     trackEvent("contextMenu", "openContextMenu", type);
 
+    const isStickyNote =
+      element != null &&
+      element.type === "rectangle" &&
+      element.customData?.isStickyNote === true;
+
     this.setState(
       {
         ...(element && !this.state.selectedElementIds[element.id]
@@ -11805,6 +11863,9 @@ class App extends React.Component<AppProps, AppState> {
       () => {
         this.setState({
           contextMenu: { top, left, items: this.getContextMenuItems(type) },
+          emojiReactionPicker: isStickyNote
+            ? { elementId: element!.id, top, left }
+            : null,
         });
       },
     );
