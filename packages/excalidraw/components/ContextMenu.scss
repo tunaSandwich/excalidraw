@@ -100,4 +100,34 @@
     border: none;
     border-top: 1px solid $color-gray-5;
   }
+
+  .context-menu-emoji-reactions {
+    display: flex;
+    gap: 2px;
+    padding: 4px 8px;
+    justify-content: center;
+  }
+
+  .context-menu-emoji-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    &--active {
+      background-color: var(--color-primary-light);
+      outline: 2px solid var(--color-primary);
+    }
+  }
 }

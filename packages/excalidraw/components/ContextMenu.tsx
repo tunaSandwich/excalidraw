@@ -20,18 +20,31 @@ export type ContextMenuItem = typeof CONTEXT_MENU_SEPARATOR | Action;
 
 export type ContextMenuItems = (ContextMenuItem | false | null | undefined)[];
 
+const REACTION_EMOJIS = ["👍", "❤️", "⭐", "🔥", "✅", "❓"] as const;
+
 type ContextMenuProps = {
   actionManager: ActionManager;
   items: ContextMenuItems;
   top: number;
   left: number;
   onClose: (callback?: () => void) => void;
+  emojiReactions?: {
+    reactions: string[];
+    onSelect: (emoji: string) => void;
+  } | null;
 };
 
 export const CONTEXT_MENU_SEPARATOR = "separator";
 
 export const ContextMenu = React.memo(
-  ({ actionManager, items, top, left, onClose }: ContextMenuProps) => {
+  ({
+    actionManager,
+    items,
+    top,
+    left,
+    onClose,
+    emojiReactions,
+  }: ContextMenuProps) => {
     const appState = useExcalidrawAppState();
     const elements = useExcalidrawElements();
 
@@ -70,6 +83,30 @@ export const ContextMenu = React.memo(
           className="context-menu"
           onContextMenu={(event) => event.preventDefault()}
         >
+          {emojiReactions && (
+            <li className="context-menu-emoji-reactions">
+              {REACTION_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={clsx("context-menu-emoji-btn", {
+                    "context-menu-emoji-btn--active":
+                      emojiReactions.reactions.includes(emoji),
+                  })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    emojiReactions.onSelect(emoji);
+                  }}
+                  title={emoji}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </li>
+          )}
+          {emojiReactions && (
+            <hr className="context-menu-item-separator" />
+          )}
           {filteredItems.map((item, idx) => {
             if (item === CONTEXT_MENU_SEPARATOR) {
               if (
@@ -102,9 +139,6 @@ export const ContextMenu = React.memo(
                 key={idx}
                 data-testid={actionName}
                 onClick={() => {
-                  // we need update state before executing the action in case
-                  // the action uses the appState it's being passed (that still
-                  // contains a defined contextMenu) to return the next state.
                   onClose(() => {
                     actionManager.executeAction(item, "contextMenu");
                   });

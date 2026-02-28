@@ -437,7 +437,6 @@ import ConvertElementTypePopup, {
 import { activeConfirmDialogAtom } from "./ActiveConfirmDialog";
 import BraveMeasureTextError from "./BraveMeasureTextError";
 import { ContextMenu, CONTEXT_MENU_SEPARATOR } from "./ContextMenu";
-import { EmojiReactionPicker } from "./EmojiReactionPicker";
 import { activeEyeDropperAtom } from "./EyeDropper";
 import FollowMode from "./FollowMode/FollowMode";
 import LayerUI from "./LayerUI";
@@ -2217,52 +2216,47 @@ class App extends React.Component<AppProps, AppState> {
                                 },
                               );
                             }}
+                            emojiReactions={
+                              this.state.emojiReactionPicker
+                                ? (() => {
+                                    const el = this.scene.getElement(
+                                      this.state.emojiReactionPicker.elementId,
+                                    );
+                                    if (!el) {
+                                      return null;
+                                    }
+                                    return {
+                                      reactions:
+                                        (el.customData
+                                          ?.reactions as string[]) || [],
+                                      onSelect: (emoji: string) => {
+                                        const reactions: string[] = [
+                                          ...((el.customData
+                                            ?.reactions as string[]) || []),
+                                        ];
+                                        const idx = reactions.indexOf(emoji);
+                                        if (idx >= 0) {
+                                          reactions.splice(idx, 1);
+                                        } else {
+                                          reactions.push(emoji);
+                                        }
+                                        this.scene.mutateElement(el, {
+                                          customData: {
+                                            ...el.customData,
+                                            reactions,
+                                          },
+                                        });
+                                        this.setState({
+                                          contextMenu: null,
+                                          emojiReactionPicker: null,
+                                        });
+                                      },
+                                    };
+                                  })()
+                                : null
+                            }
                           />
                         )}
-                        {this.state.emojiReactionPicker &&
-                          (() => {
-                            const el = this.scene.getElement(
-                              this.state.emojiReactionPicker.elementId,
-                            );
-                            if (!el) {
-                              return null;
-                            }
-                            return (
-                              <EmojiReactionPicker
-                                top={this.state.emojiReactionPicker.top - 44}
-                                left={this.state.emojiReactionPicker.left}
-                                reactions={
-                                  (el.customData?.reactions as string[]) || []
-                                }
-                                appState={this.state}
-                                onSelect={(emoji) => {
-                                  const reactions: string[] = [
-                                    ...((el.customData
-                                      ?.reactions as string[]) || []),
-                                  ];
-                                  const idx = reactions.indexOf(emoji);
-                                  if (idx >= 0) {
-                                    reactions.splice(idx, 1);
-                                  } else {
-                                    reactions.push(emoji);
-                                  }
-                                  this.scene.mutateElement(el, {
-                                    customData: {
-                                      ...el.customData,
-                                      reactions,
-                                    },
-                                  });
-                                }}
-                                onClose={() => {
-                                  this.setState({
-                                    emojiReactionPicker: null,
-                                    contextMenu: null,
-                                  });
-                                  this.focusContainer();
-                                }}
-                              />
-                            );
-                          })()}
                         <StaticCanvas
                           canvas={this.canvas}
                           rc={this.rc}
