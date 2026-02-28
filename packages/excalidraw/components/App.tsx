@@ -285,6 +285,7 @@ import type {
   ExcalidrawElbowArrowElement,
   SceneElementsMap,
   ExcalidrawBindableElement,
+  ExcalidrawNonSelectionElement,
 } from "@excalidraw/element/types";
 
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
@@ -9019,7 +9020,7 @@ class App extends React.Component<AppProps, AppState> {
       roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
-    });
+    }) as NonDeleted<ExcalidrawNonSelectionElement>;
 
     this.scene.insertElement(element);
     this.setState({
