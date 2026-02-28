@@ -104,9 +104,7 @@ export const ContextMenu = React.memo(
               ))}
             </li>
           )}
-          {emojiReactions && (
-            <hr className="context-menu-item-separator" />
-          )}
+          {emojiReactions && <hr className="context-menu-item-separator" />}
           {filteredItems.map((item, idx) => {
             if (item === CONTEXT_MENU_SEPARATOR) {
               if (
