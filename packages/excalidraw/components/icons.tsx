@@ -324,6 +324,16 @@ export const LassoIcon = createIcon(
   { fill: "none", width: 22, height: 22, strokeWidth: 1.25 },
 );
 
+export const StickyNoteIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M5 4h14a1 1 0 0 1 1 1v9.675a1 1 0 0 1-.33.74l-4.94 4.34a1 1 0 0 1-.66.245H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+    <path d="M15 14v5.09" />
+    <path d="M19.67 13.71H16a1 1 0 0 0-1 1v3.59" />
+  </g>,
+  tablerIconProps,
+);
+
 // tabler-icons: square
 export const RectangleIcon = createIcon(
   <g strokeWidth="1.5">
