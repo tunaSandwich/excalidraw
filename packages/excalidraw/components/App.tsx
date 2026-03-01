@@ -5387,6 +5387,11 @@ class App extends React.Component<AppProps, AppState> {
           : null,
       } as const;
 
+      const stickyNoteColorOverride =
+        nextActiveTool.type === "stickynote"
+          ? { currentItemBackgroundColor: COLOR_PALETTE.yellow[1] }
+          : {};
+
       if (nextActiveTool.type === "freedraw") {
         this.store.scheduleCapture();
       }
@@ -5395,6 +5400,7 @@ class App extends React.Component<AppProps, AppState> {
         return {
           ...prevState,
           ...commonResets,
+          ...stickyNoteColorOverride,
           activeTool: nextActiveTool,
           ...(keepSelection
             ? {}
@@ -5409,6 +5415,7 @@ class App extends React.Component<AppProps, AppState> {
         return {
           ...prevState,
           ...commonResets,
+          ...stickyNoteColorOverride,
           activeTool: nextActiveTool,
           selectedElementIds: makeNextSelectedElementIds({}, prevState),
           selectedGroupIds: makeNextSelectedElementIds({}, prevState),
@@ -5419,6 +5426,7 @@ class App extends React.Component<AppProps, AppState> {
       return {
         ...prevState,
         ...commonResets,
+        ...stickyNoteColorOverride,
         activeTool: nextActiveTool,
       };
     });
@@ -7526,8 +7534,12 @@ class App extends React.Component<AppProps, AppState> {
       this.state.activeTool.type !== "hand" &&
       this.state.activeTool.type !== "image"
     ) {
+      const elementType =
+        this.state.activeTool.type === "stickynote"
+          ? "rectangle"
+          : this.state.activeTool.type;
       this.createGenericElementOnPointerDown(
-        this.state.activeTool.type,
+        elementType,
         pointerDownState,
       );
     }

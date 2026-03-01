@@ -3,6 +3,7 @@ import { KEYS } from "@excalidraw/common";
 import {
   SelectionIcon,
   RectangleIcon,
+  StickyNoteIcon,
   DiamondIcon,
   EllipseIcon,
   ArrowIcon,
@@ -39,6 +40,14 @@ export const SHAPES = [
     value: "rectangle",
     key: KEYS.R,
     numericKey: KEYS["2"],
+    fillable: true,
+    toolbar: true,
+  },
+  {
+    icon: StickyNoteIcon,
+    value: "stickynote",
+    key: KEYS.S,
+    numericKey: null,
     fillable: true,
     toolbar: true,
   },

@@ -103,6 +103,7 @@ export const AllowedExcalidrawActiveTools: Record<
   lasso: true,
   text: true,
   rectangle: true,
+  stickynote: true,
   diamond: true,
   ellipse: true,
   line: true,
