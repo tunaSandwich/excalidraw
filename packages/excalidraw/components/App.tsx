@@ -8918,7 +8918,8 @@ class App extends React.Component<AppProps, AppState> {
       | "diamond"
       | "ellipse"
       | "iframe"
-      | "embeddable",
+      | "embeddable"
+      | "stickyNote",
   ) {
     return this.state.currentItemRoundness === "round"
       ? {
@@ -8946,17 +8947,25 @@ class App extends React.Component<AppProps, AppState> {
       y: gridY,
     });
 
+    const isStickyNote = elementType === "stickyNote";
+
     const baseElementAttributes = {
       x: gridX,
       y: gridY,
-      strokeColor: this.state.currentItemStrokeColor,
-      backgroundColor: this.state.currentItemBackgroundColor,
-      fillStyle: this.state.currentItemFillStyle,
-      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeColor: isStickyNote ? "#e6b800" : this.state.currentItemStrokeColor,
+      backgroundColor: isStickyNote
+        ? "#FDEFA3"
+        : this.state.currentItemBackgroundColor,
+      fillStyle: isStickyNote
+        ? ("solid" as const)
+        : this.state.currentItemFillStyle,
+      strokeWidth: isStickyNote ? 1 : this.state.currentItemStrokeWidth,
       strokeStyle: this.state.currentItemStrokeStyle,
-      roughness: this.state.currentItemRoughness,
+      roughness: isStickyNote ? 0 : this.state.currentItemRoughness,
       opacity: this.state.currentItemOpacity,
-      roundness: this.getCurrentItemRoundness(elementType),
+      roundness: isStickyNote
+        ? { type: ROUNDNESS.ADAPTIVE_RADIUS }
+        : this.getCurrentItemRoundness(elementType),
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
     } as const;
