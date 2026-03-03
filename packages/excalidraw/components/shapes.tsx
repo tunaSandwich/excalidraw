@@ -13,6 +13,7 @@ import {
   EraserIcon,
   laserPointerToolIcon,
   handIcon,
+  StickyNoteIcon,
 } from "./icons";
 
 import type { AppClassProperties } from "../types";
@@ -55,6 +56,14 @@ export const SHAPES = [
     value: "ellipse",
     key: KEYS.O,
     numericKey: KEYS["4"],
+    fillable: true,
+    toolbar: true,
+  },
+  {
+    icon: StickyNoteIcon,
+    value: "stickyNote",
+    key: KEYS.N,
+    numericKey: null,
     fillable: true,
     toolbar: true,
   },

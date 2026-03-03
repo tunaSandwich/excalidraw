@@ -33,6 +33,7 @@ import type {
   ExcalidrawRectangleElement,
   ExcalidrawEllipseElement,
   ExcalidrawDiamondElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawTextContainer,
   ExcalidrawTextElementWithContainer,
   ExcalidrawImageElement,
@@ -443,6 +444,8 @@ type Element<T extends DrawingToolName> = T extends "line" | "freedraw"
   ? ExcalidrawEllipseElement
   : T extends "diamond"
   ? ExcalidrawDiamondElement
+  : T extends "stickyNote"
+  ? ExcalidrawStickyNoteElement
   : ExcalidrawElement;
 
 export class UI {

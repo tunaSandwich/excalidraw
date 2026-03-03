@@ -394,12 +394,25 @@ const drawElementOnCanvas = (
     case "rectangle":
     case "iframe":
     case "embeddable":
+    case "stickyNote":
     case "diamond":
     case "ellipse": {
       context.lineJoin = "round";
       context.lineCap = "round";
 
+      if (element.type === "stickyNote") {
+        context.save();
+        context.shadowColor = "rgba(0, 0, 0, 0.15)";
+        context.shadowBlur = 8;
+        context.shadowOffsetX = 2;
+        context.shadowOffsetY = 3;
+      }
+
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+
+      if (element.type === "stickyNote") {
+        context.restore();
+      }
       break;
     }
     case "arrow":
@@ -886,7 +899,8 @@ export const renderElement = (
     case "image":
     case "text":
     case "iframe":
-    case "embeddable": {
+    case "embeddable":
+    case "stickyNote": {
       if (renderConfig.isExporting) {
         const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
         const cx = (x1 + x2) / 2 + appState.scrollX;

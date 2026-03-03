@@ -229,6 +229,7 @@ export const generateRoughOptions = (
     case "rectangle":
     case "iframe":
     case "embeddable":
+    case "stickyNote":
     case "diamond":
     case "ellipse": {
       options.fillStyle = element.fillStyle;
@@ -646,10 +647,9 @@ const _generateElementShape = (
   switch (element.type) {
     case "rectangle":
     case "iframe":
-    case "embeddable": {
+    case "embeddable":
+    case "stickyNote": {
       let shape: ElementShapes[typeof element.type];
-      // this is for rendering the stroke/bg of the embeddable, especially
-      // when the src url is not set
 
       if (element.roundness) {
         const w = element.width;
@@ -959,6 +959,7 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
     case "iframe":
     case "text":
     case "selection":
+    case "stickyNote":
       return getPolygonShape(element);
     case "arrow":
     case "line": {

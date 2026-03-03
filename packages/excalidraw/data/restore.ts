@@ -116,6 +116,7 @@ export const AllowedExcalidrawActiveTools: Record<
   hand: true,
   laser: false,
   magicframe: false,
+  stickyNote: true,
 };
 
 export type RestoredDataState = {
@@ -519,6 +520,7 @@ export const restoreElement = (
     case "diamond":
     case "iframe":
     case "embeddable":
+    case "stickyNote":
       return restoreElementWithProperties(element, {});
     case "magicframe":
     case "frame":

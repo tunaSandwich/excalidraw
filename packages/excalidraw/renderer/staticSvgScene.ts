@@ -147,7 +147,8 @@ const renderElementToSvg = (
     }
     case "rectangle":
     case "diamond":
-    case "ellipse": {
+    case "ellipse":
+    case "stickyNote": {
       const shape = ShapeCache.generateElementShape(element, renderConfig);
       const node = roughSVGDrawWithPrecision(
         rsvg,
@@ -159,12 +160,30 @@ const renderElementToSvg = (
         node.setAttribute("fill-opacity", `${opacity}`);
       }
       node.setAttribute("stroke-linecap", "round");
-      node.setAttribute(
-        "transform",
-        `translate(${offsetX || 0} ${
-          offsetY || 0
-        }) rotate(${degree} ${cx} ${cy})`,
-      );
+
+      const transformAttr = `translate(${offsetX || 0} ${
+        offsetY || 0
+      }) rotate(${degree} ${cx} ${cy})`;
+
+      if (element.type === "stickyNote") {
+        const filterId = `stickyNote-shadow-${element.id}`;
+        const filter = svgRoot.ownerDocument!.createElementNS(SVG_NS, "filter");
+        filter.setAttribute("id", filterId);
+        const feDropShadow = svgRoot.ownerDocument!.createElementNS(
+          SVG_NS,
+          "feDropShadow",
+        );
+        feDropShadow.setAttribute("dx", "2");
+        feDropShadow.setAttribute("dy", "3");
+        feDropShadow.setAttribute("stdDeviation", "4");
+        feDropShadow.setAttribute("flood-color", "rgba(0,0,0,0.15)");
+        filter.appendChild(feDropShadow);
+        svgRoot.querySelector("defs")?.appendChild(filter) ||
+          svgRoot.insertBefore(filter, svgRoot.firstChild);
+        node.setAttribute("filter", `url(#${filterId})`);
+      }
+
+      node.setAttribute("transform", transformAttr);
 
       const g = maybeWrapNodesInFrameClipPath(
         element,
