@@ -1404,6 +1404,7 @@ export const isActiveToolNonLinearSnappable = (
 ) => {
   return (
     activeToolType === TOOL_TYPE.rectangle ||
+    activeToolType === TOOL_TYPE.stickyNote ||
     activeToolType === TOOL_TYPE.ellipse ||
     activeToolType === TOOL_TYPE.diamond ||
     activeToolType === TOOL_TYPE.frame ||

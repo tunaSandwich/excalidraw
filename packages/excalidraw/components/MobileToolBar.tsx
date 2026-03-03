@@ -21,6 +21,7 @@ import {
   FreedrawIcon,
   EraserIcon,
   RectangleIcon,
+  StickyNoteIcon,
   ArrowIcon,
   extraToolsIcon,
   DiamondIcon,
@@ -46,6 +47,11 @@ const SHAPE_TOOLS = [
     type: "rectangle",
     icon: RectangleIcon,
     title: capitalizeString(t("toolBar.rectangle")),
+  },
+  {
+    type: "stickyNote",
+    icon: StickyNoteIcon,
+    title: capitalizeString(t("toolBar.stickyNote")),
   },
   {
     type: "diamond",
@@ -95,7 +101,7 @@ export const MobileToolBar = ({
   const activeTool = app.state.activeTool;
   const [isOtherShapesMenuOpen, setIsOtherShapesMenuOpen] = useState(false);
   const [lastActiveGenericShape, setLastActiveGenericShape] = useState<
-    "rectangle" | "diamond" | "ellipse"
+    "rectangle" | "stickyNote" | "diamond" | "ellipse"
   >("rectangle");
   const [lastActiveLinearElement, setLastActiveLinearElement] = useState<
     "arrow" | "line"
@@ -105,6 +111,7 @@ export const MobileToolBar = ({
   useEffect(() => {
     if (
       activeTool.type === "rectangle" ||
+      activeTool.type === "stickyNote" ||
       activeTool.type === "diamond" ||
       activeTool.type === "ellipse"
     ) {
@@ -272,6 +279,8 @@ export const MobileToolBar = ({
           t(
             lastActiveGenericShape === "rectangle"
               ? "toolBar.rectangle"
+              : lastActiveGenericShape === "stickyNote"
+              ? "toolBar.stickyNote"
               : lastActiveGenericShape === "diamond"
               ? "toolBar.diamond"
               : lastActiveGenericShape === "ellipse"
@@ -283,6 +292,7 @@ export const MobileToolBar = ({
         onToolChange={(type: string) => {
           if (
             type === "rectangle" ||
+            type === "stickyNote" ||
             type === "diamond" ||
             type === "ellipse"
           ) {

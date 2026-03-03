@@ -7521,6 +7521,8 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState.lastCoords.x,
         pointerDownState.lastCoords.y,
       );
+    } else if (this.state.activeTool.type === TOOL_TYPE.stickyNote) {
+      this.createStickyNoteElementOnPointerDown(pointerDownState);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
@@ -8985,6 +8987,50 @@ class App extends React.Component<AppProps, AppState> {
         newElement: element,
       });
     }
+  };
+
+  private createStickyNoteElementOnPointerDown = (
+    pointerDownState: PointerDownState,
+  ): void => {
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const element = newElement({
+      type: "rectangle",
+      x: gridX,
+      y: gridY,
+      strokeColor: "#e8d44d",
+      backgroundColor: "#FDEFA3",
+      fillStyle: "solid",
+      strokeWidth: 1,
+      strokeStyle: "solid",
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      roundness: {
+        type: ROUNDNESS.PROPORTIONAL_RADIUS,
+      },
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    if (element.type === "selection") {
+      return;
+    }
+    this.scene.insertElement(element);
+    this.setState({
+      multiElement: null,
+      newElement: element,
+    });
   };
 
   private createFrameElementOnPointerDown = (

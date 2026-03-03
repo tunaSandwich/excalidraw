@@ -301,6 +301,7 @@
     "lasso": "Lasso selection",
     "image": "Insert image",
     "rectangle": "Rectangle",
+    "stickyNote": "Sticky Note",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
     "arrow": "Arrow",
@@ -323,6 +324,7 @@
   },
   "element": {
     "rectangle": "Rectangle",
+    "stickyNote": "Sticky Note",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
     "arrow": "Arrow",
