@@ -285,6 +285,7 @@ import type {
   ExcalidrawElbowArrowElement,
   SceneElementsMap,
   ExcalidrawBindableElement,
+  ExcalidrawNonSelectionElement,
 } from "@excalidraw/element/types";
 
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
@@ -2204,11 +2205,56 @@ class App extends React.Component<AppProps, AppState> {
                             left={this.state.contextMenu.left}
                             actionManager={this.actionManager}
                             onClose={(callback) => {
-                              this.setState({ contextMenu: null }, () => {
-                                this.focusContainer();
-                                callback?.();
-                              });
+                              this.setState(
+                                {
+                                  contextMenu: null,
+                                  emojiReactionPicker: null,
+                                },
+                                () => {
+                                  this.focusContainer();
+                                  callback?.();
+                                },
+                              );
                             }}
+                            emojiReactions={
+                              this.state.emojiReactionPicker
+                                ? (() => {
+                                    const el = this.scene.getElement(
+                                      this.state.emojiReactionPicker.elementId,
+                                    );
+                                    if (!el) {
+                                      return null;
+                                    }
+                                    return {
+                                      reactions:
+                                        (el.customData
+                                          ?.reactions as string[]) || [],
+                                      onSelect: (emoji: string) => {
+                                        const reactions: string[] = [
+                                          ...((el.customData
+                                            ?.reactions as string[]) || []),
+                                        ];
+                                        const idx = reactions.indexOf(emoji);
+                                        if (idx >= 0) {
+                                          reactions.splice(idx, 1);
+                                        } else {
+                                          reactions.push(emoji);
+                                        }
+                                        this.scene.mutateElement(el, {
+                                          customData: {
+                                            ...el.customData,
+                                            reactions,
+                                          },
+                                        });
+                                        this.setState({
+                                          contextMenu: null,
+                                          emojiReactionPicker: null,
+                                        });
+                                      },
+                                    };
+                                  })()
+                                : null
+                            }
                           />
                         )}
                         <StaticCanvas
@@ -2713,6 +2759,7 @@ class App extends React.Component<AppProps, AppState> {
           // or programmatically from the host, so it will need to be
           // rewritten later
           contextMenu: null,
+          emojiReactionPicker: null,
           editingTextElement,
           viewModeEnabled,
           zenModeEnabled,
@@ -7178,8 +7225,8 @@ class App extends React.Component<AppProps, AppState> {
     // and an contextMenu action may depend on selection state, we must
     // close the contextMenu before we update the selection on pointerDown
     // (e.g. resetting selection)
-    if (this.state.contextMenu) {
-      this.setState({ contextMenu: null });
+    if (this.state.contextMenu || this.state.emojiReactionPicker) {
+      this.setState({ contextMenu: null, emojiReactionPicker: null });
     }
 
     if (this.state.snapLines) {
@@ -7521,6 +7568,8 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState.lastCoords.x,
         pointerDownState.lastCoords.y,
       );
+    } else if (this.state.activeTool.type === "stickynote") {
+      this.createStickyNoteOnPointerDown(pointerDownState);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
@@ -8987,6 +9036,46 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  private createStickyNoteOnPointerDown = (
+    pointerDownState: PointerDownState,
+  ): void => {
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const element = newElement({
+      type: "rectangle",
+      x: gridX,
+      y: gridY,
+      strokeColor: "transparent",
+      backgroundColor: "#FFF3BF",
+      fillStyle: "solid",
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+      customData: { isStickyNote: true, reactions: [] },
+    }) as NonDeleted<ExcalidrawNonSelectionElement>;
+
+    this.scene.insertElement(element);
+    this.setState({
+      multiElement: null,
+      newElement: element,
+    });
+  };
+
   private createFrameElementOnPointerDown = (
     pointerDownState: PointerDownState,
     type: Extract<ToolType, "frame" | "magicframe">,
@@ -10387,6 +10476,47 @@ class App extends React.Component<AppProps, AppState> {
         });
       }
 
+      if (activeTool.type === "stickynote" && newElement) {
+        const STICKY_NOTE_DEFAULT_SIZE = 200;
+        if (isInvisiblySmallElement(newElement)) {
+          this.scene.mutateElement(newElement, {
+            width: STICKY_NOTE_DEFAULT_SIZE,
+            height: STICKY_NOTE_DEFAULT_SIZE,
+          });
+        }
+
+        this.scene.mutateElement(
+          newElement,
+          getNormalizedDimensions(newElement),
+          { informMutation: false, isDragging: false },
+        );
+
+        this.setState((prevState) => ({
+          newElement: null,
+          activeTool: activeTool.locked
+            ? activeTool
+            : updateActiveTool(this.state, {
+                type: this.state.preferredSelectionTool.type,
+              }),
+          selectedElementIds: makeNextSelectedElementIds(
+            {
+              ...prevState.selectedElementIds,
+              [newElement.id]: true,
+            },
+            prevState,
+          ),
+        }));
+
+        this.startTextEditing({
+          sceneX: newElement.x + newElement.width / 2,
+          sceneY: newElement.y + newElement.height / 2,
+          container: newElement as ExcalidrawTextContainer,
+          autoEdit: true,
+        });
+
+        return;
+      }
+
       if (
         activeTool.type !== "selection" &&
         newElement &&
@@ -11695,6 +11825,11 @@ class App extends React.Component<AppProps, AppState> {
 
     trackEvent("contextMenu", "openContextMenu", type);
 
+    const isStickyNote =
+      element != null &&
+      element.type === "rectangle" &&
+      element.customData?.isStickyNote === true;
+
     this.setState(
       {
         ...(element && !this.state.selectedElementIds[element.id]
@@ -11722,6 +11857,9 @@ class App extends React.Component<AppProps, AppState> {
       () => {
         this.setState({
           contextMenu: { top, left, items: this.getContextMenuItems(type) },
+          emojiReactionPicker: isStickyNote
+            ? { elementId: element!.id, top, left }
+            : null,
         });
       },
     );

@@ -303,6 +303,7 @@
     "rectangle": "Rectangle",
     "diamond": "Diamond",
     "ellipse": "Ellipse",
+    "stickynote": "Sticky note",
     "arrow": "Arrow",
     "line": "Line",
     "freedraw": "Draw",

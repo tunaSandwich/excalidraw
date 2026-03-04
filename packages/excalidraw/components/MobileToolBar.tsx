@@ -34,6 +34,7 @@ import {
   LassoIcon,
   mermaidLogoIcon,
   MagicIcon,
+  StickyNoteIcon,
 } from "./icons";
 
 import "./ToolIcon.scss";
@@ -156,6 +157,7 @@ export const MobileToolBar = ({
   const showFrameToolOutside = toolbarWidth >= MIN_WIDTH + 3 * ADDITIONAL_WIDTH;
 
   const extraTools = [
+    "stickynote",
     "text",
     "frame",
     "embeddable",
@@ -175,7 +177,9 @@ export const MobileToolBar = ({
   });
   const extraToolSelected = extraTools.includes(activeTool.type);
   const extraIcon = extraToolSelected
-    ? activeTool.type === "text"
+    ? activeTool.type === "stickynote"
+      ? StickyNoteIcon
+      : activeTool.type === "text"
       ? TextIcon
       : activeTool.type === "image"
       ? ImageIcon
@@ -405,6 +409,16 @@ export const MobileToolBar = ({
           className="App-toolbar__extra-tools-dropdown"
           align="start"
         >
+          <DropdownMenu.Item
+            onSelect={() => app.setActiveTool({ type: "stickynote" })}
+            icon={StickyNoteIcon}
+            shortcut={KEYS.N.toLocaleUpperCase()}
+            data-testid="toolbar-stickynote"
+            selected={activeTool.type === "stickynote"}
+          >
+            {t("toolBar.stickynote")}
+          </DropdownMenu.Item>
+
           {!showTextToolOutside && (
             <DropdownMenu.Item
               onSelect={() => app.setActiveTool({ type: "text" })}

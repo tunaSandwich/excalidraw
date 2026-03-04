@@ -156,7 +156,8 @@ export type ToolType =
   | "frame"
   | "magicframe"
   | "embeddable"
-  | "laser";
+  | "laser"
+  | "stickynote";
 
 export type ElementOrToolType = ExcalidrawElementType | ToolType | "custom";
 
@@ -271,6 +272,11 @@ export type ObservedElementsAppState = {
 export interface AppState {
   contextMenu: {
     items: ContextMenuItems;
+    top: number;
+    left: number;
+  } | null;
+  emojiReactionPicker: {
+    elementId: string;
     top: number;
     left: number;
   } | null;

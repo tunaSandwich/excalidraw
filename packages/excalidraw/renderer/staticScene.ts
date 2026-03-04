@@ -226,6 +226,106 @@ const renderLinkIcon = (
     context.restore();
   }
 };
+const renderStickyNoteReactions = (
+  element: NonDeletedExcalidrawElement,
+  context: CanvasRenderingContext2D,
+  appState: StaticCanvasAppState,
+) => {
+  const reactions: string[] | undefined = element.customData?.reactions;
+  if (
+    !reactions ||
+    reactions.length === 0 ||
+    !element.customData?.isStickyNote
+  ) {
+    return;
+  }
+
+  const BADGE_FONT_SIZE = 14;
+  const BADGE_PADDING = 4;
+  const BADGE_GAP = 2;
+  const BADGE_HEIGHT = BADGE_FONT_SIZE + BADGE_PADDING * 2;
+  const BADGE_RADIUS = 10;
+  const BADGE_OFFSET_X = 6;
+  const BADGE_OFFSET_Y = 6;
+
+  context.save();
+
+  const baseX = appState.scrollX + element.x + BADGE_OFFSET_X;
+  const baseY =
+    appState.scrollY +
+    element.y +
+    element.height -
+    BADGE_OFFSET_Y -
+    BADGE_HEIGHT;
+
+  if (element.angle) {
+    const cx = appState.scrollX + element.x + element.width / 2;
+    const cy = appState.scrollY + element.y + element.height / 2;
+    context.translate(cx, cy);
+    context.rotate(element.angle);
+    context.translate(-cx, -cy);
+  }
+
+  context.font = `${BADGE_FONT_SIZE}px sans-serif`;
+  context.textBaseline = "middle";
+  context.globalAlpha = element.opacity / 100;
+
+  let offsetX = 0;
+
+  for (const emoji of reactions) {
+    const textWidth = context.measureText(emoji).width;
+    const badgeWidth = textWidth + BADGE_PADDING * 2;
+
+    context.fillStyle = "rgba(255, 255, 255, 0.85)";
+    context.beginPath();
+    if (context.roundRect) {
+      context.roundRect(
+        baseX + offsetX,
+        baseY,
+        badgeWidth,
+        BADGE_HEIGHT,
+        BADGE_RADIUS,
+      );
+    } else {
+      const rx = baseX + offsetX;
+      const ry = baseY;
+      const r = BADGE_RADIUS;
+      context.moveTo(rx + r, ry);
+      context.lineTo(rx + badgeWidth - r, ry);
+      context.arcTo(rx + badgeWidth, ry, rx + badgeWidth, ry + r, r);
+      context.lineTo(rx + badgeWidth, ry + BADGE_HEIGHT - r);
+      context.arcTo(
+        rx + badgeWidth,
+        ry + BADGE_HEIGHT,
+        rx + badgeWidth - r,
+        ry + BADGE_HEIGHT,
+        r,
+      );
+      context.lineTo(rx + r, ry + BADGE_HEIGHT);
+      context.arcTo(rx, ry + BADGE_HEIGHT, rx, ry + BADGE_HEIGHT - r, r);
+      context.lineTo(rx, ry + r);
+      context.arcTo(rx, ry, rx + r, ry, r);
+      context.closePath();
+    }
+    context.fill();
+
+    context.strokeStyle = "rgba(0, 0, 0, 0.12)";
+    context.lineWidth = 0.5;
+    context.stroke();
+
+    context.fillStyle = "#000";
+    context.fillText(
+      emoji,
+      baseX + offsetX + BADGE_PADDING,
+      baseY + BADGE_HEIGHT / 2 + 1,
+    );
+
+    offsetX += badgeWidth + BADGE_GAP;
+  }
+
+  context.restore();
+};
+
 const _renderStaticScene = ({
   canvas,
   rc,
@@ -372,6 +472,7 @@ const _renderStaticScene = ({
         if (!isExporting) {
           renderLinkIcon(element, context, appState, elementsMap);
         }
+        renderStickyNoteReactions(element, context, appState);
       } catch (error: any) {
         console.error(
           error,
