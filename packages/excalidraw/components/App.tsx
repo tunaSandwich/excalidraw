@@ -126,6 +126,7 @@ import {
   newFrameElement,
   newFreeDrawElement,
   newEmbeddableElement,
+  newStickyNoteElement,
   newMagicFrameElement,
   newIframeElement,
   newArrowElement,
@@ -7521,6 +7522,8 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState.lastCoords.x,
         pointerDownState.lastCoords.y,
       );
+    } else if (this.state.activeTool.type === "stickyNote") {
+      this.handleStickyNoteOnPointerDown(event, pointerDownState);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
@@ -8420,6 +8423,68 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  private handleStickyNoteOnPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    if (this.state.editingTextElement) {
+      return;
+    }
+
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const stickyNote = newStickyNoteElement({
+      x: gridX,
+      y: gridY,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor:
+        this.state.currentItemBackgroundColor === "transparent"
+          ? "#FDEFA3"
+          : this.state.currentItemBackgroundColor,
+      fillStyle: this.state.currentItemFillStyle,
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+    });
+
+    this.scene.insertElement(stickyNote);
+
+    const container = stickyNote as any;
+    const sceneX = stickyNote.x + stickyNote.width / 2;
+    const sceneY = stickyNote.y + stickyNote.height / 2;
+
+    this.startTextEditing({
+      sceneX,
+      sceneY,
+      insertAtParentCenter: true,
+      container,
+      autoEdit: true,
+    });
+
+    resetCursor(this.interactiveCanvas);
+    if (!this.state.activeTool.locked) {
+      this.setState({
+        activeTool: updateActiveTool(this.state, {
+          type: this.state.preferredSelectionTool.type,
+        }),
+      });
+    }
+  };
+
   private handleFreeDrawElementOnPointerDown = (
     event: React.PointerEvent<HTMLElement>,
     elementType: ExcalidrawFreeDrawElement["type"],
@@ -8918,7 +8983,8 @@ class App extends React.Component<AppProps, AppState> {
       | "diamond"
       | "ellipse"
       | "iframe"
-      | "embeddable",
+      | "embeddable"
+      | "stickyNote",
   ) {
     return this.state.currentItemRoundness === "round"
       ? {

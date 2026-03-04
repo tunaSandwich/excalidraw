@@ -70,6 +70,7 @@ export const KEYS = {
   Y: "y",
   Z: "z",
   K: "k",
+  N: "n",
   W: "w",
 
   0: "0",

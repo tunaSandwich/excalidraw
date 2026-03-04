@@ -48,6 +48,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawStickyNoteElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -437,6 +438,31 @@ export const refreshTextDimensions = (
   }
   const dimensions = getAdjustedDimensions(textElement, elementsMap, text);
   return { text, ...dimensions };
+};
+
+export const STICKY_NOTE_DEFAULT_WIDTH = 200;
+export const STICKY_NOTE_DEFAULT_HEIGHT = 200;
+export const STICKY_NOTE_DEFAULT_BG = "#FDEFA3";
+export const STICKY_NOTE_CORNER_RADIUS = 10;
+
+export const newStickyNoteElement = (
+  opts: ElementConstructorOpts,
+): NonDeleted<ExcalidrawStickyNoteElement> => {
+  return {
+    ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", {
+      ...opts,
+      width: opts.width || STICKY_NOTE_DEFAULT_WIDTH,
+      height: opts.height || STICKY_NOTE_DEFAULT_HEIGHT,
+      backgroundColor: opts.backgroundColor || STICKY_NOTE_DEFAULT_BG,
+      fillStyle: opts.fillStyle || "solid",
+      roughness: opts.roughness ?? 0,
+      strokeWidth: opts.strokeWidth ?? 1,
+      roundness: opts.roundness ?? {
+        type: 3, // ROUNDNESS.ADAPTIVE_RADIUS
+        value: STICKY_NOTE_CORNER_RADIUS,
+      },
+    }),
+  };
 };
 
 export const newFreeDrawElement = (

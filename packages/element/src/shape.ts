@@ -230,7 +230,8 @@ export const generateRoughOptions = (
     case "iframe":
     case "embeddable":
     case "diamond":
-    case "ellipse": {
+    case "ellipse":
+    case "stickyNote": {
       options.fillStyle = element.fillStyle;
       options.fill = isTransparent(element.backgroundColor)
         ? undefined
@@ -648,8 +649,6 @@ const _generateElementShape = (
     case "iframe":
     case "embeddable": {
       let shape: ElementShapes[typeof element.type];
-      // this is for rendering the stroke/bg of the embeddable, especially
-      // when the src url is not set
 
       if (element.roundness) {
         const w = element.width;
@@ -688,6 +687,22 @@ const _generateElementShape = (
           ),
         );
       }
+      return shape;
+    }
+    case "stickyNote": {
+      const w = element.width;
+      const h = element.height;
+      const r = element.roundness
+        ? getCornerRadius(Math.min(w, h), element)
+        : 10;
+      const shape: ElementShapes["stickyNote"] = generator.path(
+        `M ${r} 0 L ${w - r} 0 Q ${w} 0, ${w} ${r} L ${w} ${
+          h - r
+        } Q ${w} ${h}, ${w - r} ${h} L ${r} ${h} Q 0 ${h}, 0 ${
+          h - r
+        } L 0 ${r} Q 0 0, ${r} 0`,
+        generateRoughOptions(element, true, isDarkMode),
+      );
       return shape;
     }
     case "diamond": {
@@ -959,6 +974,7 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
     case "iframe":
     case "text":
     case "selection":
+    case "stickyNote":
       return getPolygonShape(element);
     case "arrow":
     case "line": {

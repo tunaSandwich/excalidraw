@@ -29,7 +29,14 @@ import type {
   ExcalidrawLineElement,
   ExcalidrawFlowchartNodeElement,
   ExcalidrawLinearElementSubType,
+  ExcalidrawStickyNoteElement,
 } from "./types";
+
+export const isStickyNoteElement = (
+  element: ExcalidrawElement | null,
+): element is ExcalidrawStickyNoteElement => {
+  return !!element && element.type === "stickyNote";
+};
 
 export const isInitializedImageElement = (
   element: ExcalidrawElement | null,
@@ -189,6 +196,7 @@ export const isBindableElement = (
       element.type === "embeddable" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
+      element.type === "stickyNote" ||
       (element.type === "text" && !element.containerId))
   );
 };
@@ -205,6 +213,7 @@ export const isRectanguloidElement = (
       element.type === "embeddable" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
+      element.type === "stickyNote" ||
       (element.type === "text" && !element.containerId))
   );
 };
@@ -223,7 +232,8 @@ export const isRectangularElement = (
       element.type === "embeddable" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
-      element.type === "freedraw")
+      element.type === "freedraw" ||
+      element.type === "stickyNote")
   );
 };
 
@@ -237,6 +247,7 @@ export const isTextBindableContainer = (
     (element.type === "rectangle" ||
       element.type === "diamond" ||
       element.type === "ellipse" ||
+      element.type === "stickyNote" ||
       isArrowElement(element))
   );
 };
@@ -261,7 +272,8 @@ export const isExcalidrawElement = (
     case "frame":
     case "magicframe":
     case "image":
-    case "selection": {
+    case "selection":
+    case "stickyNote": {
       return true;
     }
     default: {
@@ -309,7 +321,8 @@ export const isUsingAdaptiveRadius = (type: string) =>
   type === "rectangle" ||
   type === "embeddable" ||
   type === "iframe" ||
-  type === "image";
+  type === "image" ||
+  type === "stickyNote";
 
 export const isUsingProportionalRadius = (type: string) =>
   type === "line" || type === "arrow" || type === "diamond";

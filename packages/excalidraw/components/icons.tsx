@@ -1914,6 +1914,17 @@ export const laserPointerToolIcon = createIcon(
   20,
 );
 
+export const StickyNoteIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M5 3h14a2 2 0 0 1 2 2v10l-6 6H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+    <path d="M15 15v6l6-6h-6z" fill="currentColor" opacity="0.3" />
+    <line x1="8" y1="8" x2="13" y2="8" />
+    <line x1="8" y1="12" x2="11" y2="12" />
+  </g>,
+  tablerIconProps,
+);
+
 export const MagicIcon = createIcon(
   <g stroke="currentColor" fill="none">
     <path stroke="none" d="M0 0h24v24H0z" />

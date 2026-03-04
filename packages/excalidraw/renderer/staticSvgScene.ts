@@ -147,7 +147,8 @@ const renderElementToSvg = (
     }
     case "rectangle":
     case "diamond":
-    case "ellipse": {
+    case "ellipse":
+    case "stickyNote": {
       const shape = ShapeCache.generateElementShape(element, renderConfig);
       const node = roughSVGDrawWithPrecision(
         rsvg,
@@ -165,6 +166,13 @@ const renderElementToSvg = (
           offsetY || 0
         }) rotate(${degree} ${cx} ${cy})`,
       );
+
+      if (element.type === "stickyNote") {
+        node.setAttribute(
+          "filter",
+          "drop-shadow(2px 3px 4px rgba(0,0,0,0.15))",
+        );
+      }
 
       const g = maybeWrapNodesInFrameClipPath(
         element,

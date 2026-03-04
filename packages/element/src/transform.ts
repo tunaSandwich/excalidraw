@@ -26,6 +26,7 @@ import {
   newImageElement,
   newLinearElement,
   newMagicFrameElement,
+  newStickyNoteElement,
   newTextElement,
   type ElementConstructorOpts,
 } from "./newElement";
@@ -54,6 +55,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawMagicFrameElement,
   ExcalidrawSelectionElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawTextElement,
   FileId,
   FontFamilyValues,
@@ -206,7 +208,12 @@ export type ExcalidrawElementSkeleton =
       type: "magicframe";
       children: readonly ExcalidrawElement["id"][];
       name?: string;
-    } & Partial<ExcalidrawMagicFrameElement>);
+    } & Partial<ExcalidrawMagicFrameElement>)
+  | ({
+      type: "stickyNote";
+      x: number;
+      y: number;
+    } & Partial<ExcalidrawStickyNoteElement>);
 
 const DEFAULT_LINEAR_ELEMENT_PROPS = {
   width: 100,
@@ -626,6 +633,14 @@ export const convertToExcalidrawElements = (
       case "iframe":
       case "embeddable": {
         excalidrawElement = element;
+        break;
+      }
+      case "stickyNote": {
+        excalidrawElement = newStickyNoteElement({
+          ...element,
+          width: element.width || DEFAULT_DIMENSION,
+          height: element.height || DEFAULT_DIMENSION,
+        });
         break;
       }
 

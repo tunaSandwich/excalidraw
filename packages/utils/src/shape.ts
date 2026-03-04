@@ -50,6 +50,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawRectangleElement,
   ExcalidrawSelectionElement,
+  ExcalidrawStickyNoteElement,
   ExcalidrawTextElement,
 } from "@excalidraw/element/types";
 import type { Curve, LineSegment, Polygon, Radians } from "@excalidraw/math";
@@ -108,6 +109,7 @@ type RectangularElement =
   | ExcalidrawFrameLikeElement
   | ExcalidrawEmbeddableElement
   | ExcalidrawImageElement
+  | ExcalidrawStickyNoteElement
   | ExcalidrawIframeElement
   | ExcalidrawTextElement
   | ExcalidrawSelectionElement;
