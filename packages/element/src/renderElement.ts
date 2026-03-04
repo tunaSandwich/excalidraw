@@ -392,6 +392,7 @@ const drawElementOnCanvas = (
 ) => {
   switch (element.type) {
     case "rectangle":
+    case "stickynote":
     case "iframe":
     case "embeddable":
     case "diamond":
@@ -399,7 +400,17 @@ const drawElementOnCanvas = (
       context.lineJoin = "round";
       context.lineCap = "round";
 
+      if (element.type === "stickynote") {
+        context.save();
+        context.shadowColor = "rgba(0, 0, 0, 0.15)";
+        context.shadowBlur = 6;
+        context.shadowOffsetX = 2;
+        context.shadowOffsetY = 3;
+      }
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      if (element.type === "stickynote") {
+        context.restore();
+      }
       break;
     }
     case "arrow":
@@ -879,6 +890,7 @@ export const renderElement = (
       break;
     }
     case "rectangle":
+    case "stickynote":
     case "diamond":
     case "ellipse":
     case "line":

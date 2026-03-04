@@ -306,6 +306,7 @@ const bindLinearElementToElement = (
       } else {
         switch (startType) {
           case "rectangle":
+          case "stickynote":
           case "ellipse":
           case "diamond": {
             startBoundElement = newElement({
@@ -382,6 +383,7 @@ const bindLinearElementToElement = (
       } else {
         switch (endType) {
           case "rectangle":
+          case "stickynote":
           case "ellipse":
           case "diamond": {
             endBoundElement = newElement({
@@ -528,6 +530,7 @@ export const convertToExcalidrawElements = (
 
     switch (element.type) {
       case "rectangle":
+      case "stickynote":
       case "ellipse":
       case "diamond": {
         const width =
@@ -660,6 +663,7 @@ export const convertToExcalidrawElements = (
 
     switch (element.type) {
       case "rectangle":
+      case "stickynote":
       case "ellipse":
       case "diamond":
       case "arrow": {

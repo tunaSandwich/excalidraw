@@ -34,6 +34,7 @@ import {
   LassoIcon,
   mermaidLogoIcon,
   MagicIcon,
+  StickyNoteIcon,
 } from "./icons";
 
 import "./ToolIcon.scss";
@@ -56,6 +57,11 @@ const SHAPE_TOOLS = [
     type: "ellipse",
     icon: EllipseIcon,
     title: capitalizeString(t("toolBar.ellipse")),
+  },
+  {
+    type: "stickynote",
+    icon: StickyNoteIcon,
+    title: capitalizeString(t("toolBar.stickynote")),
   },
 ] as const;
 
@@ -95,7 +101,7 @@ export const MobileToolBar = ({
   const activeTool = app.state.activeTool;
   const [isOtherShapesMenuOpen, setIsOtherShapesMenuOpen] = useState(false);
   const [lastActiveGenericShape, setLastActiveGenericShape] = useState<
-    "rectangle" | "diamond" | "ellipse"
+    "rectangle" | "diamond" | "ellipse" | "stickynote"
   >("rectangle");
   const [lastActiveLinearElement, setLastActiveLinearElement] = useState<
     "arrow" | "line"
@@ -106,7 +112,8 @@ export const MobileToolBar = ({
     if (
       activeTool.type === "rectangle" ||
       activeTool.type === "diamond" ||
-      activeTool.type === "ellipse"
+      activeTool.type === "ellipse" ||
+      activeTool.type === "stickynote"
     ) {
       setLastActiveGenericShape(activeTool.type);
     }
@@ -276,6 +283,8 @@ export const MobileToolBar = ({
               ? "toolBar.diamond"
               : lastActiveGenericShape === "ellipse"
               ? "toolBar.ellipse"
+              : lastActiveGenericShape === "stickynote"
+              ? "toolBar.stickynote"
               : "toolBar.rectangle",
           ),
         )}
@@ -284,7 +293,8 @@ export const MobileToolBar = ({
           if (
             type === "rectangle" ||
             type === "diamond" ||
-            type === "ellipse"
+            type === "ellipse" ||
+            type === "stickynote"
           ) {
             setLastActiveGenericShape(type);
             app.setActiveTool({ type });

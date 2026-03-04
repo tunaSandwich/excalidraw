@@ -146,6 +146,7 @@ const renderElementToSvg = (
       throw new Error("Selection rendering is not supported for SVG");
     }
     case "rectangle":
+    case "stickynote":
     case "diamond":
     case "ellipse": {
       const shape = ShapeCache.generateElementShape(element, renderConfig);
@@ -165,6 +166,29 @@ const renderElementToSvg = (
           offsetY || 0
         }) rotate(${degree} ${cx} ${cy})`,
       );
+
+      if (element.type === "stickynote") {
+        const filterId = `sticky-shadow-${element.id}`;
+        const filter = svgRoot.ownerDocument!.createElementNS(SVG_NS, "filter");
+        filter.setAttribute("id", filterId);
+        const feDropShadow = svgRoot.ownerDocument!.createElementNS(
+          SVG_NS,
+          "feDropShadow",
+        );
+        feDropShadow.setAttribute("dx", "2");
+        feDropShadow.setAttribute("dy", "3");
+        feDropShadow.setAttribute("stdDeviation", "3");
+        feDropShadow.setAttribute("flood-color", "rgba(0,0,0,0.15)");
+        filter.appendChild(feDropShadow);
+
+        let defs = svgRoot.querySelector("defs");
+        if (!defs) {
+          defs = svgRoot.ownerDocument!.createElementNS(SVG_NS, "defs");
+          svgRoot.prepend(defs);
+        }
+        defs.appendChild(filter);
+        node.setAttribute("filter", `url(#${filterId})`);
+      }
 
       const g = maybeWrapNodesInFrameClipPath(
         element,

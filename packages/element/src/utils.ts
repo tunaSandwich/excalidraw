@@ -511,7 +511,8 @@ const getDiagonalsForBindableElement = (
 ) => {
   // for rectangles, shrink the diagonals a bit because there's something
   // going on with the focus points around the corners. Ask Mark for details.
-  const OFFSET_PX = element.type === "rectangle" ? 15 : 0;
+  const OFFSET_PX =
+    element.type === "rectangle" || element.type === "stickynote" ? 15 : 0;
   const shrinkSegment = (seg: LineSegment<GlobalPoint>) => {
     const v = vectorNormalize(vectorFromPoint(seg[1], seg[0]));
     const offset = vectorScale(v, OFFSET_PX);

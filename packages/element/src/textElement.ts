@@ -434,6 +434,7 @@ export const suppportsHorizontalAlign = (
 
 const VALID_CONTAINER_TYPES = new Set([
   "rectangle",
+  "stickynote",
   "ellipse",
   "diamond",
   "arrow",

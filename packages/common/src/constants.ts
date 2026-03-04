@@ -429,6 +429,16 @@ export const DEFAULT_ELEMENT_PROPS: {
   locked: false,
 };
 
+export const STICKY_NOTE_DEFAULTS = {
+  backgroundColor: "#FDEFA3",
+  width: 200,
+  height: 200,
+  cornerRadius: 10,
+  fillStyle: "solid" as const,
+  roughness: 0,
+  strokeWidth: 1,
+};
+
 export const LIBRARY_SIDEBAR_TAB = "library";
 export const CANVAS_SEARCH_TAB = "search";
 
@@ -461,6 +471,7 @@ export const TOOL_TYPE = {
   magicframe: "magicframe",
   embeddable: "embeddable",
   laser: "laser",
+  stickynote: "stickynote",
 } as const;
 
 export const EDITOR_LS_KEYS = {

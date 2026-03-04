@@ -184,6 +184,7 @@ export const isBindableElement = (
     (element.type === "rectangle" ||
       element.type === "diamond" ||
       element.type === "ellipse" ||
+      element.type === "stickynote" ||
       element.type === "image" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
@@ -200,6 +201,7 @@ export const isRectanguloidElement = (
     element != null &&
     (element.type === "rectangle" ||
       element.type === "diamond" ||
+      element.type === "stickynote" ||
       element.type === "image" ||
       element.type === "iframe" ||
       element.type === "embeddable" ||
@@ -217,6 +219,7 @@ export const isRectangularElement = (
   return (
     element != null &&
     (element.type === "rectangle" ||
+      element.type === "stickynote" ||
       element.type === "image" ||
       element.type === "text" ||
       element.type === "iframe" ||
@@ -237,6 +240,7 @@ export const isTextBindableContainer = (
     (element.type === "rectangle" ||
       element.type === "diamond" ||
       element.type === "ellipse" ||
+      element.type === "stickynote" ||
       isArrowElement(element))
   );
 };
@@ -252,6 +256,7 @@ export const isExcalidrawElement = (
     case "text":
     case "diamond":
     case "rectangle":
+    case "stickynote":
     case "iframe":
     case "embeddable":
     case "ellipse":
@@ -307,6 +312,7 @@ export const isArrowBoundToElement = (element: ExcalidrawArrowElement) => {
 
 export const isUsingAdaptiveRadius = (type: string) =>
   type === "rectangle" ||
+  type === "stickynote" ||
   type === "embeddable" ||
   type === "iframe" ||
   type === "image";

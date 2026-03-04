@@ -52,6 +52,7 @@ import {
   ZOOM_STEP,
   POINTER_EVENTS,
   TOOL_TYPE,
+  STICKY_NOTE_DEFAULTS,
   supportsResizeObserver,
   DEFAULT_COLLISION_THRESHOLD,
   DEFAULT_TEXT_ALIGN,
@@ -8915,6 +8916,7 @@ class App extends React.Component<AppProps, AppState> {
     elementType:
       | "selection"
       | "rectangle"
+      | "stickynote"
       | "diamond"
       | "ellipse"
       | "iframe"
@@ -8946,17 +8948,29 @@ class App extends React.Component<AppProps, AppState> {
       y: gridY,
     });
 
+    const isStickyNote = elementType === "stickynote";
+
     const baseElementAttributes = {
       x: gridX,
       y: gridY,
       strokeColor: this.state.currentItemStrokeColor,
-      backgroundColor: this.state.currentItemBackgroundColor,
-      fillStyle: this.state.currentItemFillStyle,
-      strokeWidth: this.state.currentItemStrokeWidth,
+      backgroundColor: isStickyNote
+        ? STICKY_NOTE_DEFAULTS.backgroundColor
+        : this.state.currentItemBackgroundColor,
+      fillStyle: isStickyNote
+        ? STICKY_NOTE_DEFAULTS.fillStyle
+        : this.state.currentItemFillStyle,
+      strokeWidth: isStickyNote
+        ? STICKY_NOTE_DEFAULTS.strokeWidth
+        : this.state.currentItemStrokeWidth,
       strokeStyle: this.state.currentItemStrokeStyle,
-      roughness: this.state.currentItemRoughness,
+      roughness: isStickyNote
+        ? STICKY_NOTE_DEFAULTS.roughness
+        : this.state.currentItemRoughness,
       opacity: this.state.currentItemOpacity,
-      roundness: this.getCurrentItemRoundness(elementType),
+      roundness: isStickyNote
+        ? { type: ROUNDNESS.ADAPTIVE_RADIUS }
+        : this.getCurrentItemRoundness(elementType),
       locked: false,
       frameId: topLayerFrame ? topLayerFrame.id : null,
     } as const;
@@ -10392,6 +10406,35 @@ class App extends React.Component<AppProps, AppState> {
         newElement &&
         isInvisiblySmallElement(newElement)
       ) {
+        if (newElement.type === "stickynote") {
+          this.scene.mutateElement(newElement, {
+            width: STICKY_NOTE_DEFAULTS.width,
+            height: STICKY_NOTE_DEFAULTS.height,
+            x: newElement.x - STICKY_NOTE_DEFAULTS.width / 2,
+            y: newElement.y - STICKY_NOTE_DEFAULTS.height / 2,
+          });
+          this.setState(
+            (prevState) => ({
+              newElement: null,
+              selectedElementIds: makeNextSelectedElementIds(
+                { [newElement.id]: true },
+                prevState,
+              ),
+              activeTool: updateActiveTool(this.state, {
+                type: this.state.preferredSelectionTool.type,
+              }),
+            }),
+            () => {
+              this.startTextEditing({
+                sceneX: newElement.x + STICKY_NOTE_DEFAULTS.width / 2,
+                sceneY: newElement.y + STICKY_NOTE_DEFAULTS.height / 2,
+                container: newElement as ExcalidrawTextContainer,
+              });
+            },
+          );
+          return;
+        }
+
         // remove invisible element which was added in onPointerDown
         // update the store snapshot, so that invisible elements are not captured by the store
         this.updateScene({
@@ -10435,6 +10478,34 @@ class App extends React.Component<AppProps, AppState> {
         );
         // the above does not guarantee the scene to be rendered again, hence the trigger below
         this.scene.triggerUpdate();
+      }
+
+      if (
+        newElement?.type === "stickynote" &&
+        pointerDownState.drag.hasOccurred
+      ) {
+        const cx = newElement.x + newElement.width / 2;
+        const cy = newElement.y + newElement.height / 2;
+        this.setState(
+          (prevState) => ({
+            newElement: null,
+            selectedElementIds: makeNextSelectedElementIds(
+              { [newElement.id]: true },
+              prevState,
+            ),
+            activeTool: updateActiveTool(this.state, {
+              type: this.state.preferredSelectionTool.type,
+            }),
+          }),
+          () => {
+            this.startTextEditing({
+              sceneX: cx,
+              sceneY: cy,
+              container: newElement as ExcalidrawTextContainer,
+            });
+          },
+        );
+        return;
       }
 
       if (pointerDownState.drag.hasOccurred) {
