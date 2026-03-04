@@ -454,9 +454,10 @@ export const newStickyNoteElement = (
       width: opts.width || STICKY_NOTE_DEFAULT_WIDTH,
       height: opts.height || STICKY_NOTE_DEFAULT_HEIGHT,
       backgroundColor: opts.backgroundColor || STICKY_NOTE_DEFAULT_BG,
+      strokeColor: opts.strokeColor || "transparent",
       fillStyle: opts.fillStyle || "solid",
       roughness: opts.roughness ?? 0,
-      strokeWidth: opts.strokeWidth ?? 1,
+      strokeWidth: opts.strokeWidth ?? 0,
       roundness: opts.roundness ?? {
         type: 3, // ROUNDNESS.ADAPTIVE_RADIUS
         value: STICKY_NOTE_CORNER_RADIUS,
