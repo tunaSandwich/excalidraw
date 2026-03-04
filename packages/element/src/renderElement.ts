@@ -78,6 +78,7 @@ import type {
   ExcalidrawFrameLikeElement,
   NonDeletedSceneElementsMap,
   ElementsMap,
+  ExcalidrawStickyNoteElement,
 } from "./types";
 
 import type { RoughCanvas } from "roughjs/bin/canvas";
@@ -384,6 +385,117 @@ const drawImagePlaceholder = (
   );
 };
 
+const STICKY_NOTE_PADDING = 16;
+
+const drawStickyNoteOnCanvas = (
+  element: ExcalidrawStickyNoteElement,
+  context: CanvasRenderingContext2D,
+  renderConfig: StaticCanvasRenderConfig,
+) => {
+  const { width, height } = element;
+  const radius = getCornerRadius(Math.min(width, height), element);
+  const bgColor =
+    renderConfig.theme === THEME.DARK
+      ? applyDarkModeFilter(element.backgroundColor)
+      : element.backgroundColor;
+  const strokeColor =
+    renderConfig.theme === THEME.DARK
+      ? applyDarkModeFilter(element.strokeColor)
+      : element.strokeColor;
+
+  context.save();
+
+  context.shadowColor = "rgba(0, 0, 0, 0.15)";
+  context.shadowBlur = 8;
+  context.shadowOffsetX = 2;
+  context.shadowOffsetY = 3;
+
+  context.beginPath();
+  if (context.roundRect) {
+    context.roundRect(0, 0, width, height, radius);
+  } else {
+    context.moveTo(radius, 0);
+    context.lineTo(width - radius, 0);
+    context.quadraticCurveTo(width, 0, width, radius);
+    context.lineTo(width, height - radius);
+    context.quadraticCurveTo(width, height, width - radius, height);
+    context.lineTo(radius, height);
+    context.quadraticCurveTo(0, height, 0, height - radius);
+    context.lineTo(0, radius);
+    context.quadraticCurveTo(0, 0, radius, 0);
+    context.closePath();
+  }
+
+  context.fillStyle = bgColor;
+  context.fill();
+
+  context.shadowColor = "transparent";
+  context.shadowBlur = 0;
+  context.shadowOffsetX = 0;
+  context.shadowOffsetY = 0;
+
+  if (element.strokeWidth > 0 && strokeColor !== "transparent") {
+    context.strokeStyle = strokeColor;
+    context.lineWidth = element.strokeWidth;
+    if (element.strokeStyle === "dashed") {
+      context.setLineDash([8, 8 + element.strokeWidth]);
+    } else if (element.strokeStyle === "dotted") {
+      context.setLineDash([1.5, 6 + element.strokeWidth]);
+    }
+    context.stroke();
+  }
+
+  if (element.text) {
+    const rtl = isRTL(element.text);
+    context.canvas.setAttribute("dir", rtl ? "rtl" : "ltr");
+    context.font = getFontString(element);
+    context.fillStyle =
+      renderConfig.theme === THEME.DARK
+        ? applyDarkModeFilter(element.strokeColor)
+        : element.strokeColor;
+    context.textAlign = element.textAlign as CanvasTextAlign;
+    context.textBaseline = "top";
+
+    const lines = element.text.replace(/\r\n?/g, "\n").split("\n");
+    const lineHeightPx = getLineHeightInPx(
+      element.fontSize,
+      element.lineHeight,
+    );
+    const verticalOffset = getVerticalOffset(
+      element.fontFamily,
+      element.fontSize,
+      lineHeightPx,
+    );
+
+    const textBlockHeight = lines.length * lineHeightPx;
+    let startY: number;
+    if (element.verticalAlign === "middle") {
+      startY = (height - textBlockHeight) / 2;
+    } else if (element.verticalAlign === "bottom") {
+      startY = height - textBlockHeight - STICKY_NOTE_PADDING;
+    } else {
+      startY = STICKY_NOTE_PADDING;
+    }
+
+    const horizontalOffset =
+      element.textAlign === "center"
+        ? width / 2
+        : element.textAlign === "right"
+        ? width - STICKY_NOTE_PADDING
+        : STICKY_NOTE_PADDING;
+
+    for (let index = 0; index < lines.length; index++) {
+      context.fillText(
+        lines[index],
+        horizontalOffset,
+        startY + index * lineHeightPx + verticalOffset,
+      );
+    }
+  }
+
+  context.restore();
+};
+
 const drawElementOnCanvas = (
   element: NonDeletedExcalidrawElement,
   rc: RoughCanvas,
@@ -541,6 +653,10 @@ const drawElementOnCanvas = (
         drawImagePlaceholder(element, context, renderConfig.theme);
       }
       context.restore();
+      break;
+    }
+    case "stickyNote": {
+      drawStickyNoteOnCanvas(element, context, renderConfig);
       break;
     }
     default: {
@@ -886,7 +1002,8 @@ export const renderElement = (
     case "image":
     case "text":
     case "iframe":
-    case "embeddable": {
+    case "embeddable":
+    case "stickyNote": {
       if (renderConfig.isExporting) {
         const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
         const cx = (x1 + x2) / 2 + appState.scrollX;
