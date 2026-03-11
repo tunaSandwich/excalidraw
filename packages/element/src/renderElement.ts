@@ -402,6 +402,58 @@ const drawElementOnCanvas = (
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
       break;
     }
+    case "stickyNote": {
+      context.lineJoin = "round";
+      context.lineCap = "round";
+
+      context.save();
+      context.shadowColor = "rgba(0, 0, 0, 0.15)";
+      context.shadowBlur = 8;
+      context.shadowOffsetX = 2;
+      context.shadowOffsetY = 3;
+      rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      context.restore();
+
+      if (element.text) {
+        const padding = 10;
+        const rtl = isRTL(element.text);
+        context.save();
+        context.font = getFontString(element);
+        context.fillStyle =
+          renderConfig.theme === THEME.DARK
+            ? applyDarkModeFilter(element.strokeColor)
+            : element.strokeColor;
+        context.textAlign = element.textAlign as CanvasTextAlign;
+
+        const lines = element.text.replace(/\r\n?/g, "\n").split("\n");
+        const lineHeightPx = getLineHeightInPx(
+          element.fontSize,
+          element.lineHeight,
+        );
+        const verticalOffset = getVerticalOffset(
+          element.fontFamily,
+          element.fontSize,
+          lineHeightPx,
+        );
+        const horizontalOffset =
+          element.textAlign === "center"
+            ? element.width / 2
+            : element.textAlign === "right"
+            ? element.width - padding
+            : padding;
+
+        context.canvas.setAttribute("dir", rtl ? "rtl" : "ltr");
+        for (let index = 0; index < lines.length; index++) {
+          context.fillText(
+            lines[index],
+            horizontalOffset,
+            padding + index * lineHeightPx + verticalOffset,
+          );
+        }
+        context.restore();
+      }
+      break;
+    }
     case "arrow":
     case "line": {
       context.lineJoin = "round";
@@ -886,7 +938,8 @@ export const renderElement = (
     case "image":
     case "text":
     case "iframe":
-    case "embeddable": {
+    case "embeddable":
+    case "stickyNote": {
       if (renderConfig.isExporting) {
         const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
         const cx = (x1 + x2) / 2 + appState.scrollX;

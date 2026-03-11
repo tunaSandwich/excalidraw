@@ -430,6 +430,17 @@ export const ImageIcon = createIcon(
   modifiedTablerIconProps,
 );
 
+export const StickyNoteIcon = createIcon(
+  <g strokeWidth="1.5">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M18 14l-4 4H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8z" />
+    <path d="M14 14v4l4-4h-4z" />
+    <line x1="8" y1="8" x2="12" y2="8" />
+    <line x1="8" y1="11" x2="16" y2="11" />
+  </g>,
+  tablerIconProps,
+);
+
 // tabler-icons: eraser
 export const EraserIcon = createIcon(
   <g strokeWidth="1.5">

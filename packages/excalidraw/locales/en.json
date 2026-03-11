@@ -316,6 +316,7 @@
     "magicframe": "Wireframe to code",
     "embeddable": "Web Embed",
     "laser": "Laser pointer",
+    "stickyNote": "Sticky Note",
     "hand": "Hand (panning tool)",
     "extraTools": "More tools",
     "mermaidToExcalidraw": "Mermaid to Excalidraw",
@@ -335,7 +336,8 @@
     "magicframe": "Wireframe to code",
     "embeddable": "Web Embed",
     "selection": "Selection",
-    "iframe": "IFrame"
+    "iframe": "IFrame",
+    "stickyNote": "Sticky Note"
   },
   "headings": {
     "canvasActions": "Canvas actions",

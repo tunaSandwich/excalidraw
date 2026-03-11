@@ -48,6 +48,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawStickyNoteElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -522,6 +523,40 @@ export const newArrowElement = <T extends boolean>(
   } as T extends true
     ? NonDeleted<ExcalidrawElbowArrowElement>
     : NonDeleted<ExcalidrawArrowElement>;
+};
+
+export const STICKY_NOTE_DEFAULT_WIDTH = 200;
+export const STICKY_NOTE_DEFAULT_HEIGHT = 200;
+
+export const newStickyNoteElement = (
+  opts: {
+    text?: string;
+    originalText?: string;
+    fontSize?: number;
+    fontFamily?: FontFamilyValues;
+    textAlign?: TextAlign;
+    lineHeight?: ExcalidrawStickyNoteElement["lineHeight"];
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawStickyNoteElement> => {
+  const fontFamily = opts.fontFamily || DEFAULT_FONT_FAMILY;
+  const fontSize = opts.fontSize || DEFAULT_FONT_SIZE;
+  const lineHeight = opts.lineHeight || getLineHeight(fontFamily);
+  const text = opts.text ? normalizeText(opts.text) : "";
+  const textAlign = opts.textAlign || DEFAULT_TEXT_ALIGN;
+
+  return {
+    ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", {
+      ...opts,
+      width: opts.width || STICKY_NOTE_DEFAULT_WIDTH,
+      height: opts.height || STICKY_NOTE_DEFAULT_HEIGHT,
+    }),
+    text,
+    fontSize,
+    fontFamily,
+    textAlign,
+    originalText: opts.originalText ?? text,
+    lineHeight,
+  };
 };
 
 export const newImageElement = (

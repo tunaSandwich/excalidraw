@@ -133,6 +133,9 @@ import {
   newImageElement,
   newLinearElement,
   newTextElement,
+  newStickyNoteElement,
+  STICKY_NOTE_DEFAULT_WIDTH,
+  STICKY_NOTE_DEFAULT_HEIGHT,
   refreshTextDimensions,
   deepCopyElement,
   duplicateElements,
@@ -152,6 +155,7 @@ import {
   isIframeLikeElement,
   isMagicFrameElement,
   isTextBindableContainer,
+  isStickyNoteElement,
   isElbowArrow,
   isFlowchartNodeElement,
   isBindableElement,
@@ -285,6 +289,7 @@ import type {
   ExcalidrawElbowArrowElement,
   SceneElementsMap,
   ExcalidrawBindableElement,
+  ExcalidrawStickyNoteElement,
 } from "@excalidraw/element/types";
 
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
@@ -6190,14 +6195,17 @@ class App extends React.Component<AppProps, AppState> {
     if (!event[KEYS.CTRL_OR_CMD] && !this.state.viewModeEnabled) {
       const hitElement = this.getElementAtPosition(sceneX, sceneY);
 
+      if (isStickyNoteElement(hitElement)) {
+        this.startStickyNoteEditing(hitElement);
+        return;
+      }
+
       if (isIframeLikeElement(hitElement)) {
         this.setState({
           activeEmbeddable: { element: hitElement, state: "active" },
         });
         return;
       }
-
-      // shouldn't edit/create text when inside line editor (often false positive)
 
       if (!this.state.selectedLinearElement?.isEditing) {
         const container = this.getTextBindableContainerAtPosition(
@@ -7489,6 +7497,8 @@ class App extends React.Component<AppProps, AppState> {
         });
         pointerDownState.hit.wasAddedToSelection = true;
       }
+    } else if (this.state.activeTool.type === "stickyNote") {
+      this.handleStickyNoteOnPointerDown(event, pointerDownState);
     } else if (this.state.activeTool.type === "text") {
       this.handleTextOnPointerDown(event, pointerDownState);
     } else if (
@@ -8985,6 +8995,193 @@ class App extends React.Component<AppProps, AppState> {
         newElement: element,
       });
     }
+  };
+
+  private handleStickyNoteOnPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    if (this.state.editingTextElement) {
+      return;
+    }
+
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const stickyNote = newStickyNoteElement({
+      x: gridX - STICKY_NOTE_DEFAULT_WIDTH / 2,
+      y: gridY - STICKY_NOTE_DEFAULT_HEIGHT / 2,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor: "#FDEFA3",
+      fillStyle: "solid",
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+      fontSize: this.state.currentItemFontSize,
+      fontFamily: this.state.currentItemFontFamily,
+      textAlign: "center",
+    });
+
+    this.scene.insertElement(stickyNote);
+    this.setState({
+      multiElement: null,
+      selectedElementIds: makeNextSelectedElementIds(
+        { [stickyNote.id]: true },
+        this.state,
+      ),
+    });
+
+    resetCursor(this.interactiveCanvas);
+    if (!this.state.activeTool.locked) {
+      this.setState({
+        activeTool: updateActiveTool(this.state, {
+          type: this.state.preferredSelectionTool.type,
+        }),
+      });
+    }
+
+    setTimeout(() => {
+      this.startStickyNoteEditing(stickyNote);
+    }, 0);
+  };
+
+  startStickyNoteEditing = (element: ExcalidrawStickyNoteElement) => {
+    const updateStickyNote = (text: string) => {
+      const wrappedText = wrapText(
+        text,
+        getFontString(element),
+        element.width - 20,
+      );
+      this.scene.mutateElement(element, {
+        text: wrappedText,
+        originalText: text,
+      });
+      ShapeCache.delete(element);
+    };
+
+    const container = this.excalidrawContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const editorContainer = container.querySelector(
+      ".excalidraw-textEditorContainer",
+    );
+    if (!editorContainer) {
+      return;
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.classList.add("excalidraw-wysiwyg");
+    textarea.value = element.originalText || "";
+    textarea.tabIndex = 0;
+
+    const padding = 10;
+    const updateTextareaStyle = () => {
+      const el = this.scene.getElement(element.id) as
+        | ExcalidrawStickyNoteElement
+        | undefined;
+      if (!el) {
+        return;
+      }
+      const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
+        { sceneX: el.x, sceneY: el.y },
+        this.state,
+      );
+      const left =
+        viewportX - this.state.offsetLeft + padding * this.state.zoom.value;
+      const top =
+        viewportY - this.state.offsetTop + padding * this.state.zoom.value;
+      const width = (el.width - padding * 2) * this.state.zoom.value;
+      const height = (el.height - padding * 2) * this.state.zoom.value;
+
+      Object.assign(textarea.style, {
+        position: "absolute",
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        fontSize: `${el.fontSize * this.state.zoom.value}px`,
+        fontFamily: getFontString(el).split("px ")[1] || "sans-serif",
+        textAlign: el.textAlign,
+        color: el.strokeColor,
+        backgroundColor: "transparent",
+        border: "none",
+        outline: "none",
+        resize: "none",
+        overflow: "hidden",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        boxSizing: "border-box",
+        lineHeight: `${el.lineHeight}`,
+        padding: "0",
+        margin: "0",
+        zIndex: "100",
+      });
+    };
+
+    updateTextareaStyle();
+    editorContainer.appendChild(textarea);
+
+    this.setState({ editingTextElement: { id: element.id } as any });
+
+    let isInitialized = false;
+
+    const submitAndCleanup = () => {
+      if (textarea.parentNode) {
+        const text = textarea.value;
+        updateStickyNote(text);
+        textarea.remove();
+        this.setState({
+          editingTextElement: null,
+        });
+        this.store.scheduleCapture();
+        this.focusContainer();
+      }
+    };
+
+    textarea.addEventListener("blur", () => {
+      if (isInitialized) {
+        submitAndCleanup();
+      }
+    });
+
+    textarea.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        submitAndCleanup();
+      }
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        submitAndCleanup();
+      }
+    });
+
+    textarea.addEventListener("input", () => {
+      const text = textarea.value;
+      updateStickyNote(text);
+    });
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      isInitialized = true;
+    });
   };
 
   private createFrameElementOnPointerDown = (

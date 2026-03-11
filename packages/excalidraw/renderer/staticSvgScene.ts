@@ -177,6 +177,56 @@ const renderElementToSvg = (
       addToRoot(g || node, element);
       break;
     }
+    case "stickyNote": {
+      const shape = ShapeCache.generateElementShape(element, renderConfig);
+      const node = roughSVGDrawWithPrecision(
+        rsvg,
+        shape,
+        MAX_DECIMALS_FOR_SVG_EXPORT,
+      );
+      if (opacity !== 1) {
+        node.setAttribute("stroke-opacity", `${opacity}`);
+        node.setAttribute("fill-opacity", `${opacity}`);
+      }
+      node.setAttribute("stroke-linecap", "round");
+      node.setAttribute(
+        "transform",
+        `translate(${offsetX || 0} ${
+          offsetY || 0
+        }) rotate(${degree} ${cx} ${cy})`,
+      );
+      addToRoot(node, element);
+
+      if (element.text) {
+        const padding = 10;
+        const textNode = svgRoot.ownerDocument!.createElementNS(SVG_NS, "text");
+        textNode.setAttribute("fill", element.strokeColor);
+        textNode.setAttribute("font-size", `${element.fontSize}px`);
+        textNode.setAttribute("font-family", getFontFamilyString(element));
+        textNode.setAttribute("text-anchor", "middle");
+        textNode.setAttribute(
+          "transform",
+          `translate(${offsetX || 0} ${
+            offsetY || 0
+          }) rotate(${degree} ${cx} ${cy})`,
+        );
+
+        const lines = element.text.split("\n");
+        const lineHeight = element.fontSize * element.lineHeight;
+        lines.forEach((line: string, index: number) => {
+          const tspan = svgRoot.ownerDocument!.createElementNS(SVG_NS, "tspan");
+          tspan.setAttribute("x", `${element.width / 2}`);
+          tspan.setAttribute(
+            "y",
+            `${padding + index * lineHeight + element.fontSize}`,
+          );
+          tspan.textContent = line;
+          textNode.appendChild(tspan);
+        });
+        addToRoot(textNode, element);
+      }
+      break;
+    }
     case "iframe":
     case "embeddable": {
       // render placeholder rectangle
