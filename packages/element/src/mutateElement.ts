@@ -129,7 +129,9 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
     typeof updates.height !== "undefined" ||
     typeof updates.width !== "undefined" ||
     typeof fileId != "undefined" ||
-    typeof points !== "undefined"
+    typeof points !== "undefined" ||
+    (element.type === "stickyNote" &&
+      typeof (updates as any).text !== "undefined")
   ) {
     ShapeCache.delete(element);
   }

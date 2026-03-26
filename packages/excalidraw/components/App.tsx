@@ -133,6 +133,10 @@ import {
   newImageElement,
   newLinearElement,
   newTextElement,
+  newStickyNoteElement,
+  STICKY_NOTE_DEFAULT_WIDTH,
+  STICKY_NOTE_DEFAULT_HEIGHT,
+  STICKY_NOTE_DEFAULT_COLOR,
   refreshTextDimensions,
   deepCopyElement,
   duplicateElements,
@@ -156,6 +160,7 @@ import {
   isFlowchartNodeElement,
   isBindableElement,
   isTextElement,
+  isStickyNoteElement,
   getNormalizedDimensions,
   isElementCompletelyInViewport,
   isElementInViewport,
@@ -285,6 +290,7 @@ import type {
   ExcalidrawElbowArrowElement,
   SceneElementsMap,
   ExcalidrawBindableElement,
+  ExcalidrawStickyNoteElement,
 } from "@excalidraw/element/types";
 
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
@@ -6197,6 +6203,11 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
 
+      if (isStickyNoteElement(hitElement)) {
+        this.handleStickyNoteTextEditing(hitElement);
+        return;
+      }
+
       // shouldn't edit/create text when inside line editor (often false positive)
 
       if (!this.state.selectedLinearElement?.isEditing) {
@@ -7516,6 +7527,8 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState,
         this.state.activeTool.type,
       );
+    } else if (this.state.activeTool.type === "stickyNote") {
+      this.handleStickyNoteOnPointerDown(event, pointerDownState);
     } else if (this.state.activeTool.type === "laser") {
       this.laserTrails.startPath(
         pointerDownState.lastCoords.x,
@@ -8928,6 +8941,140 @@ class App extends React.Component<AppProps, AppState> {
         }
       : null;
   }
+
+  private handleStickyNoteOnPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    const [gridX, gridY] = getGridPoint(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+      this.lastPointerDownEvent?.[KEYS.CTRL_OR_CMD]
+        ? null
+        : this.getEffectiveGridSize(),
+    );
+
+    const topLayerFrame = this.getTopLayerFrameAtSceneCoords({
+      x: gridX,
+      y: gridY,
+    });
+
+    const stickyNote = newStickyNoteElement({
+      x: gridX - STICKY_NOTE_DEFAULT_WIDTH / 2,
+      y: gridY - STICKY_NOTE_DEFAULT_HEIGHT / 2,
+      strokeColor: this.state.currentItemStrokeColor,
+      backgroundColor:
+        this.state.currentItemBackgroundColor === "transparent"
+          ? STICKY_NOTE_DEFAULT_COLOR
+          : this.state.currentItemBackgroundColor,
+      fillStyle: "solid",
+      strokeWidth: this.state.currentItemStrokeWidth,
+      strokeStyle: this.state.currentItemStrokeStyle,
+      roughness: 0,
+      opacity: this.state.currentItemOpacity,
+      roundness: { type: 3, value: 10 },
+      locked: false,
+      frameId: topLayerFrame ? topLayerFrame.id : null,
+      fontSize: this.state.currentItemFontSize,
+      fontFamily: this.state.currentItemFontFamily,
+    });
+
+    this.scene.insertElement(stickyNote);
+
+    this.setState({
+      newElement: null,
+      multiElement: null,
+      selectedElementIds: {
+        ...this.state.selectedElementIds,
+        [stickyNote.id]: true,
+      },
+      editingTextElement: stickyNote,
+    });
+
+    this.handleStickyNoteTextEditing(stickyNote);
+
+    if (!this.state.activeTool.locked) {
+      this.setActiveTool({ type: "selection" });
+    }
+  };
+
+  private handleStickyNoteTextEditing = (
+    element: ExcalidrawStickyNoteElement,
+  ) => {
+    const padding = 10;
+    const updateFn = textWysiwyg({
+      id: element.id,
+      canvas: this.canvas,
+      getViewportCoords: (x, y) => {
+        const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
+          { sceneX: x, sceneY: y },
+          this.state,
+        );
+        return [
+          viewportX - this.state.offsetLeft,
+          viewportY - this.state.offsetTop,
+        ];
+      },
+      onChange: (nextOriginalText) => {
+        const wrappedText = wrapText(
+          nextOriginalText,
+          getFontString({
+            fontSize: element.fontSize,
+            fontFamily: element.fontFamily,
+          }),
+          element.width - padding * 2,
+        );
+        this.scene.mutateElement(element, {
+          text: wrappedText,
+          originalText: nextOriginalText,
+        });
+      },
+      onSubmit: ({ viaKeyboard, nextOriginalText }) => {
+        const wrappedText = wrapText(
+          nextOriginalText,
+          getFontString({
+            fontSize: element.fontSize,
+            fontFamily: element.fontFamily,
+          }),
+          element.width - padding * 2,
+        );
+        this.scene.mutateElement(element, {
+          text: wrappedText,
+          originalText: nextOriginalText,
+        });
+        this.setState({
+          editingTextElement: null,
+        });
+        if (nextOriginalText.trim().length === 0) {
+          this.scene.mutateElement(element, {
+            text: "",
+            originalText: "",
+          });
+        }
+      },
+      element: {
+        ...element,
+        type: "text",
+        text: element.originalText,
+        originalText: element.originalText,
+        containerId: null,
+        autoResize: false,
+        width: element.width - padding * 2,
+        height: element.height - padding * 2,
+        x: element.x + padding,
+        y: element.y + padding,
+      } as ExcalidrawTextElement,
+      excalidrawContainer: this.excalidrawContainerValue.container,
+      app: this,
+      autoSelect: true,
+    });
+
+    this.setState({
+      editingTextElement: element,
+    });
+
+    return updateFn;
+  };
 
   private createGenericElementOnPointerDown = (
     elementType: ExcalidrawGenericElement["type"] | "embeddable",

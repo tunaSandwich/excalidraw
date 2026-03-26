@@ -402,6 +402,93 @@ const drawElementOnCanvas = (
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
       break;
     }
+    case "stickyNote": {
+      context.lineJoin = "round";
+      context.lineCap = "round";
+
+      context.save();
+      context.shadowColor = "rgba(0, 0, 0, 0.15)";
+      context.shadowBlur = 8;
+      context.shadowOffsetX = 2;
+      context.shadowOffsetY = 3;
+      rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      context.restore();
+
+      if (element.text) {
+        context.save();
+        const padding = 10;
+        context.font = getFontString({
+          fontSize: element.fontSize,
+          fontFamily: element.fontFamily,
+        });
+        context.fillStyle =
+          renderConfig.theme === THEME.DARK
+            ? applyDarkModeFilter(element.strokeColor)
+            : element.strokeColor;
+        context.textAlign = element.textAlign as CanvasTextAlign;
+        context.textBaseline = "top";
+
+        const maxWidth = element.width - padding * 2;
+        const lineHeightPx = getLineHeightInPx(
+          element.fontSize,
+          element.lineHeight,
+        );
+        const lines = element.text.replace(/\r\n?/g, "\n").split("\n");
+
+        const horizontalOffset =
+          element.textAlign === "center"
+            ? element.width / 2
+            : element.textAlign === "right"
+            ? element.width - padding
+            : padding;
+
+        const totalTextHeight = lines.length * lineHeightPx;
+        let startY: number;
+        if (element.verticalAlign === "middle") {
+          startY = (element.height - totalTextHeight) / 2;
+        } else if (element.verticalAlign === "bottom") {
+          startY = element.height - totalTextHeight - padding;
+        } else {
+          startY = padding;
+        }
+
+        const verticalOffset = getVerticalOffset(
+          element.fontFamily,
+          element.fontSize,
+          lineHeightPx,
+        );
+
+        for (let index = 0; index < lines.length; index++) {
+          const line = lines[index];
+          const words = line.split(" ");
+          let currentLine = "";
+
+          for (const word of words) {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            const metrics = context.measureText(testLine);
+            if (metrics.width > maxWidth && currentLine) {
+              context.fillText(
+                currentLine,
+                horizontalOffset,
+                startY + verticalOffset,
+              );
+              startY += lineHeightPx;
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
+          }
+          context.fillText(
+            currentLine,
+            horizontalOffset,
+            startY + verticalOffset,
+          );
+          startY += lineHeightPx;
+        }
+        context.restore();
+      }
+      break;
+    }
     case "arrow":
     case "line": {
       context.lineJoin = "round";
@@ -886,7 +973,8 @@ export const renderElement = (
     case "image":
     case "text":
     case "iframe":
-    case "embeddable": {
+    case "embeddable":
+    case "stickyNote": {
       if (renderConfig.isExporting) {
         const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
         const cx = (x1 + x2) / 2 + appState.scrollX;

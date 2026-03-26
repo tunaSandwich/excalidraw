@@ -48,6 +48,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawStickyNoteElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -522,6 +523,49 @@ export const newArrowElement = <T extends boolean>(
   } as T extends true
     ? NonDeleted<ExcalidrawElbowArrowElement>
     : NonDeleted<ExcalidrawArrowElement>;
+};
+
+export const STICKY_NOTE_DEFAULT_WIDTH = 200;
+export const STICKY_NOTE_DEFAULT_HEIGHT = 200;
+export const STICKY_NOTE_DEFAULT_COLOR = "#FDEFA3";
+
+export const newStickyNoteElement = (
+  opts: {
+    text?: string;
+    fontSize?: number;
+    fontFamily?: FontFamilyValues;
+    textAlign?: TextAlign;
+    verticalAlign?: VerticalAlign;
+    lineHeight?: ExcalidrawStickyNoteElement["lineHeight"];
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawStickyNoteElement> => {
+  const fontFamily = opts.fontFamily || DEFAULT_FONT_FAMILY;
+  const fontSize = opts.fontSize || DEFAULT_FONT_SIZE;
+  const lineHeight = opts.lineHeight || getLineHeight(fontFamily);
+  const text = normalizeText(opts.text || "");
+  const textAlign = opts.textAlign || "center";
+  const verticalAlign = opts.verticalAlign || VERTICAL_ALIGN.MIDDLE;
+
+  return {
+    ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", {
+      ...opts,
+      backgroundColor: opts.backgroundColor || STICKY_NOTE_DEFAULT_COLOR,
+      fillStyle: opts.fillStyle || "solid",
+      strokeWidth: opts.strokeWidth ?? 1,
+      roughness: opts.roughness ?? 0,
+      roundness: opts.roundness ?? { type: 3, value: 10 },
+      width: opts.width || STICKY_NOTE_DEFAULT_WIDTH,
+      height: opts.height || STICKY_NOTE_DEFAULT_HEIGHT,
+    }),
+    text,
+    fontSize,
+    fontFamily,
+    textAlign,
+    verticalAlign,
+    originalText: text,
+    lineHeight,
+    autoResize: false,
+  };
 };
 
 export const newImageElement = (
