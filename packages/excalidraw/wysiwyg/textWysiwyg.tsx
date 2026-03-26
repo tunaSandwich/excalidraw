@@ -39,6 +39,7 @@ import {
   isArrowElement,
   isBoundToContainer,
   isTextElement,
+  isStickyNoteElement,
 } from "@excalidraw/element";
 
 import type {
@@ -146,11 +147,57 @@ export const textWysiwyg = ({
     LAST_THEME = app.state.theme;
 
     const appState = app.state;
-    const updatedTextElement = app.scene.getElement<ExcalidrawTextElement>(id);
+    const sceneElement = app.scene.getElement(id);
 
-    if (!updatedTextElement) {
+    if (!sceneElement) {
       return;
     }
+
+    if (isStickyNoteElement(sceneElement)) {
+      const stickyPadding = 10;
+      const coordX = sceneElement.x + stickyPadding;
+      const coordY = sceneElement.y + stickyPadding;
+      const width = sceneElement.width - stickyPadding * 2;
+      const height = sceneElement.height - stickyPadding * 2;
+      const [viewportX, viewportY] = getViewportCoords(coordX, coordY);
+      const font = getFontString({
+        fontSize: sceneElement.fontSize,
+        fontFamily: sceneElement.fontFamily,
+      });
+      const editorMaxHeight =
+        (appState.height - viewportY) / appState.zoom.value;
+      Object.assign(editable.style, {
+        font,
+        lineHeight: sceneElement.lineHeight,
+        width: `${width}px`,
+        height: `${height}px`,
+        left: `${viewportX}px`,
+        top: `${viewportY}px`,
+        transform: getTransform(
+          width,
+          height,
+          sceneElement.angle,
+          appState,
+          width,
+          editorMaxHeight,
+        ),
+        textAlign: sceneElement.textAlign,
+        verticalAlign: sceneElement.verticalAlign,
+        color:
+          appState.theme === THEME.DARK
+            ? applyDarkModeFilter(sceneElement.strokeColor)
+            : sceneElement.strokeColor,
+        opacity: sceneElement.opacity / 100,
+        maxHeight: `${editorMaxHeight}px`,
+      });
+      editable.scrollTop = 0;
+      if (isTestEnv()) {
+        editable.style.fontFamily = getFontFamilyString(sceneElement);
+      }
+      return;
+    }
+
+    const updatedTextElement = sceneElement as ExcalidrawTextElement;
     const { textAlign, verticalAlign } = updatedTextElement;
     const elementsMap = app.scene.getNonDeletedElementsMap();
     if (updatedTextElement && isTextElement(updatedTextElement)) {
@@ -599,14 +646,22 @@ export const textWysiwyg = ({
     // it'd get stuck in an infinite loop of blur→onSubmit after we re-focus the
     // wysiwyg on update
     cleanup();
-    const updateElement = app.scene.getElement(
-      element.id,
-    ) as ExcalidrawTextElement;
+    const updateElement = app.scene.getElement(element.id);
     if (!updateElement) {
       return;
     }
+
+    if (isStickyNoteElement(updateElement)) {
+      onSubmit({
+        viaKeyboard: submittedViaKeyboard,
+        nextOriginalText: editable.value,
+      });
+      return;
+    }
+
+    const textElement = updateElement as ExcalidrawTextElement;
     const container = getContainerElement(
-      updateElement,
+      textElement,
       app.scene.getNonDeletedElementsMap(),
     );
 
@@ -635,7 +690,7 @@ export const textWysiwyg = ({
         });
       }
 
-      redrawTextBoundingBox(updateElement, container, app.scene);
+      redrawTextBoundingBox(textElement, container, app.scene);
     }
 
     onSubmit({
