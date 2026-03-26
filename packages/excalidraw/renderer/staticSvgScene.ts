@@ -177,6 +177,84 @@ const renderElementToSvg = (
       addToRoot(g || node, element);
       break;
     }
+    case "stickyNote": {
+      const shape = ShapeCache.generateElementShape(element, renderConfig);
+      const node = roughSVGDrawWithPrecision(
+        rsvg,
+        shape,
+        MAX_DECIMALS_FOR_SVG_EXPORT,
+      );
+      if (opacity !== 1) {
+        node.setAttribute("stroke-opacity", `${opacity}`);
+        node.setAttribute("fill-opacity", `${opacity}`);
+      }
+      node.setAttribute("stroke-linecap", "round");
+      node.setAttribute(
+        "transform",
+        `translate(${offsetX || 0} ${
+          offsetY || 0
+        }) rotate(${degree} ${cx} ${cy})`,
+      );
+
+      const groupEl = document.createElementNS(SVG_NS, "g");
+      groupEl.appendChild(node);
+
+      if (element.text) {
+        const textEl = document.createElementNS(SVG_NS, "text");
+        textEl.setAttribute(
+          "transform",
+          `translate(${offsetX || 0} ${
+            offsetY || 0
+          }) rotate(${degree} ${cx} ${cy})`,
+        );
+        textEl.setAttribute("font-size", `${element.fontSize}px`);
+        textEl.setAttribute("font-family", `${element.fontFamily}`);
+        textEl.setAttribute("fill", element.strokeColor);
+        textEl.setAttribute("text-anchor", element.textAlign === "center" ? "middle" : element.textAlign === "right" ? "end" : "start");
+        if (opacity !== 1) {
+          textEl.setAttribute("opacity", `${opacity}`);
+        }
+
+        const padding = 10;
+        const lines = element.text.split("\n");
+        const lineHeight = element.fontSize * element.lineHeight;
+        const totalHeight = lines.length * lineHeight;
+
+        let startY: number;
+        if (element.verticalAlign === "middle") {
+          startY = element.y + (element.height - totalHeight) / 2;
+        } else {
+          startY = element.y + padding;
+        }
+
+        const xPos =
+          element.textAlign === "center"
+            ? element.x + element.width / 2
+            : element.textAlign === "right"
+            ? element.x + element.width - padding
+            : element.x + padding;
+
+        lines.forEach((line, index) => {
+          const tspan = document.createElementNS(SVG_NS, "tspan");
+          tspan.setAttribute("x", `${xPos}`);
+          tspan.setAttribute("y", `${startY + index * lineHeight + element.fontSize}`);
+          tspan.textContent = line;
+          textEl.appendChild(tspan);
+        });
+        groupEl.appendChild(textEl);
+      }
+
+      const g = maybeWrapNodesInFrameClipPath(
+        element,
+        root,
+        [groupEl],
+        renderConfig.frameRendering,
+        elementsMap,
+      );
+
+      addToRoot(g || groupEl, element);
+      break;
+    }
     case "iframe":
     case "embeddable": {
       // render placeholder rectangle

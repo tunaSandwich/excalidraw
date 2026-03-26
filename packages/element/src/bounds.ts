@@ -429,6 +429,7 @@ const _isRectanguloidElement = (
       element.type === "embeddable" ||
       element.type === "frame" ||
       element.type === "magicframe" ||
+      element.type === "stickyNote" ||
       (element.type === "text" && !element.containerId))
   );
 };
