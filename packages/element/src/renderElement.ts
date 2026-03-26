@@ -62,7 +62,6 @@ import {
   hasBoundTextElement,
   isMagicFrameElement,
   isImageElement,
-  isStickyNoteElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
 import { getCornerRadius } from "./utils";
@@ -79,7 +78,6 @@ import type {
   ExcalidrawFrameLikeElement,
   NonDeletedSceneElementsMap,
   ElementsMap,
-  ExcalidrawStickyNoteElement,
 } from "./types";
 
 import type { RoughCanvas } from "roughjs/bin/canvas";

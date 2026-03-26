@@ -9,7 +9,7 @@ Excalidraw is a client-side whiteboard/diagramming React app. The only service r
 ### Services
 
 | Service | Command | Port | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Vite dev server | `yarn start` | 3001 | The main app; core drawing works fully offline with no backends |
 
 ### Development commands

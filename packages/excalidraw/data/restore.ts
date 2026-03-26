@@ -530,7 +530,9 @@ export const restoreElement = (
         fontFamily: element.fontFamily || DEFAULT_FONT_FAMILY,
         textAlign: element.textAlign || "center",
         verticalAlign: element.verticalAlign || "middle",
-        lineHeight: element.lineHeight || getLineHeight(element.fontFamily || DEFAULT_FONT_FAMILY),
+        lineHeight:
+          element.lineHeight ||
+          getLineHeight(element.fontFamily || DEFAULT_FONT_FAMILY),
         autoResize: element.autoResize ?? false,
       });
     case "magicframe":

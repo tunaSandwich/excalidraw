@@ -210,7 +210,14 @@ const renderElementToSvg = (
         textEl.setAttribute("font-size", `${element.fontSize}px`);
         textEl.setAttribute("font-family", `${element.fontFamily}`);
         textEl.setAttribute("fill", element.strokeColor);
-        textEl.setAttribute("text-anchor", element.textAlign === "center" ? "middle" : element.textAlign === "right" ? "end" : "start");
+        textEl.setAttribute(
+          "text-anchor",
+          element.textAlign === "center"
+            ? "middle"
+            : element.textAlign === "right"
+            ? "end"
+            : "start",
+        );
         if (opacity !== 1) {
           textEl.setAttribute("opacity", `${opacity}`);
         }
@@ -237,7 +244,10 @@ const renderElementToSvg = (
         lines.forEach((line, index) => {
           const tspan = document.createElementNS(SVG_NS, "tspan");
           tspan.setAttribute("x", `${xPos}`);
-          tspan.setAttribute("y", `${startY + index * lineHeight + element.fontSize}`);
+          tspan.setAttribute(
+            "y",
+            `${startY + index * lineHeight + element.fontSize}`,
+          );
           tspan.textContent = line;
           textEl.appendChild(tspan);
         });

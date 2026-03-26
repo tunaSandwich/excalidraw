@@ -549,8 +549,7 @@ export const newStickyNoteElement = (
   return {
     ..._newElementBase<ExcalidrawStickyNoteElement>("stickyNote", {
       ...opts,
-      backgroundColor:
-        opts.backgroundColor || STICKY_NOTE_DEFAULT_COLOR,
+      backgroundColor: opts.backgroundColor || STICKY_NOTE_DEFAULT_COLOR,
       fillStyle: opts.fillStyle || "solid",
       strokeWidth: opts.strokeWidth ?? 1,
       roughness: opts.roughness ?? 0,
